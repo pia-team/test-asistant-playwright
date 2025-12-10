@@ -1,21 +1,25 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  timeout: 60000,
-  // retries:2,//retry numbers
-  // workers:4,//browser numbers
-  reporter: [["line"], ["allure-playwright"]],
   use: {
-    //headless: false,// headless modu world.ts içerisindenden yönetiliyor ya da consolde npm run ...:headless koduyla koşulabilir
-
-    viewport: { width: 1920, height: 1080 }, // Tam ekran video için sabit viewport
+    viewport: { width: 1920, height: 1080 }, // Full HD resolution for consistent recording
     launchOptions: {
-      args: ['--start-maximized'] // ✅ Chrome/Edge için pencereyi büyüt
+      args: ['--start-maximized'] // Maximize window (content matches viewport)
     },
-    screenshot: 'on', // test başarısız olursa ekran görüntüsü al
     video: {
-      mode: 'on', // Her zaman video kaydı al
-      size: { width: 1920, height: 1080 } // Video boyutunu viewport ile eşleştir
+      mode: 'retain-on-failure',
+      // Explicitly set video size to match viewport to avoid downscaling to 800x800
+      size: { width: 1920, height: 1080 }
     },
+    screenshot: 'on',
   },
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1920, height: 1080 } // Specific project override also set to FHD
+      }
+    }
+  ]
 });
