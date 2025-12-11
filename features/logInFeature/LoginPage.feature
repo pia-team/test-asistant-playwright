@@ -2,7 +2,7 @@ Feature: Login Functionality
 
 
 
-  @ui @smoke @BLOCKER @validLogin @wip
+  @ui @smoke @BLOCKER @validLogin 
 
   Scenario: Login Positive
 
@@ -28,7 +28,7 @@ Feature: Login Functionality
 
 
 
-  @ui @smoke @BLOCKER @validLogin @wip
+  @ui @smoke @BLOCKER @validLogin 
 
   Scenario: Login negative
 

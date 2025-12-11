@@ -6,6 +6,7 @@
     "wip:in:uat": "cross-env TEST_ENV=uat cucumber-js --require-module ts-node/register --tags '@wip'",
     "wip:test:test": "cross-env TEST_ENV=test cucumber-js --require-module ts-node/register --tags '@wip'",
     "wip:test:dev": "cross-env TEST_ENV=dev cucumber-js --require-module ts-node/register --tags '@wip'",
+    "try:test:dev": "cross-env TEST_ENV=dev cucumber-js --require-module ts-node/register --tags '@try'",
     "wip:test:staging": "cross-env TEST_ENV=staging cucumber-js --require-module ts-node/register --tags '@wip'",
     "test:default": "cucumber-js --profile default --retry 2",
     "test:rerun": "cucumber-js --profile rerun   --retry 2",

@@ -21,7 +21,7 @@ module.exports = {
     paths: ['features/**/*.feature'],
     timeout: 60_000,
     parallel: 3,               // paralel koşu değerini buradan yönetiyoruz
-    retry: 1 ,                // ⬅️ FAIL olan senaryoları 1 kez daha dene (toplam 3)
+    retry: 0 ,                // ⬅️ FAIL olan senaryoları 1 kez daha dene (toplam 3)
     // retryTagFilter: '@flaky' // (opsiyonel) sadece @flaky etiketlilere retry uygula
     dryRun:false             //"senaryo çalışmadan önce step var mı?" kontrolü yapmakiçin true yap
   },

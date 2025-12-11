@@ -40,11 +40,11 @@ export class LoginPage {
 
   }
 
-  async enterUsername(username?: string, password?: string) {
+  async enterUsername(username?: string) {
     await this.page.fill(this.usernameInput, username || this.config.username);
   }
 
-  async enterPassword(username?: string, password?: string) {
+  async enterPassword(password?: string) {
     await this.page.fill(this.passwordInput, password || this.config.password);
   }
 
