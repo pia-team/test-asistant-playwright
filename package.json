@@ -2,17 +2,16 @@
   "name": "playwright-cucumber-bdd-ts",
   "version": "1.0.0",
   "scripts": {
-    "parallel:run:in:uat": "cross-env TEST_ENV=uat cucumber-js --require-module ts-node/register --parallel 4",
-    "wip:in:uat": "cross-env TEST_ENV=uat cucumber-js --require-module ts-node/register --tags '@wip'",
-    "wip:test:test": "cross-env TEST_ENV=test cucumber-js --require-module ts-node/register --tags '@wip'",
-    "wip:test:dev": "cross-env TEST_ENV=dev cucumber-js --require-module ts-node/register --tags '@wip'",
-    "try:test:dev": "cross-env TEST_ENV=dev cucumber-js --require-module ts-node/register --tags '@try'",
-    "wip:test:staging": "cross-env TEST_ENV=staging cucumber-js --require-module ts-node/register --tags '@wip'",
-    "test:default": "cucumber-js --profile default --retry 2",
-    "test:rerun": "cucumber-js --profile rerun   --retry 2",
-    "generate:allure-report": "npx allure generate allure-results --clean -o allure-report",
-    "open:allure-report": "npx allure open allure-report",
-    "test:run": "cross-env TEST_ENV=dev cucumber-js --require-module ts-node/register"
+   "parallel:run:in:uat": "cross-env TEST_ENV=uat cucumber-js --require cucumber.js --parallel 4",
+"wip:in:uat": "cross-env TEST_ENV=uat cucumber-js --require cucumber.js --tags '@wip'",
+"wip:test:test": "cross-env TEST_ENV=test cucumber-js --require cucumber.js --tags '@wip'",
+"wip:test:dev": "cross-env TEST_ENV=dev cucumber-js --require cucumber.js --tags '@wip'",
+"try:test:dev": "cross-env TEST_ENV=dev cucumber-js --require cucumber.js --tags '@try'",
+"wip:test:staging": "cross-env TEST_ENV=staging cucumber-js --require cucumber.js --tags '@wip'",
+"test:default": "cucumber-js --require cucumber.js --profile default --retry 2",
+"test:rerun": "cucumber-js --require cucumber.js --profile rerun --retry 2",
+"test:run": "cross-env TEST_ENV=dev cucumber-js --require cucumber.js"
+
   },
   "dependencies": {
     "playwright": "^1.48.0"

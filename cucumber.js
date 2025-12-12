@@ -1,4 +1,6 @@
 // cucumber.js
+console.log(">>> CUCUMBER CONFIG LOADED <<<");
+
 module.exports = {
   default: {
     requireModule: ['ts-node/register'],

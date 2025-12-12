@@ -3,6 +3,9 @@ import type { ICustomWorld } from './world';
 import { CustomWorld } from './world';
 import * as fs from 'fs/promises';
 import chalk from "chalk";
+import { setDefaultTimeout } from '@cucumber/cucumber';
+
+setDefaultTimeout(60 * 1000);
 
 Before(async function (this: CustomWorld) {
   await this.openBrowser();
