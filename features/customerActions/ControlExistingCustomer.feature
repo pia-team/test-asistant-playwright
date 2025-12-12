@@ -14,22 +14,22 @@ Feature: Controling The Existing Customer
 
     # And User enters password  "1234"
 
-    When User enters user name as "nora"
+    When User enters user name as ""
 
-    And User enters password as "1234"
+    And User enters password as ""
 
     And User clicks singIn Btn
 
     And User clicks the searching type dropdown
 
-    And User select the "Customer Name" option from dropdown
+    And User selects the "Customer Name" option from dropdown
 
     And User enters the name as "OFYETIM PIDEV" intoinput field
     
-     And User  slicks the search icon
+    And User  clicks the search icon
 
     And User clicks the option from the list
 
-    And User cliks the logout dropdown button
+    And User clicks the logout dropdown button
 
     And User logs out from main page

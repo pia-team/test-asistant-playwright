@@ -15,7 +15,7 @@ When('User clicks the searching type dropdown',async function (this: ICustomWorl
   await controlExistingCutomerPage.clikingTypeOfsearchingDrop()
 })
 
-When('User select the {string} option from dropdown', async function (this: ICustomWorld,type:string) {
+When('User selects the {string} option from dropdown', async function (this: ICustomWorld,type:string) {
   const controlExistingCutomerPage = new ControlExistingCustomerPage(this.page!);
   await controlExistingCutomerPage.selectingTheTypeOfsearcing(type)
 })
@@ -24,7 +24,7 @@ When('User enters the name as {string} intoinput field', async function (this: I
   const controlExistingCutomerPage = new ControlExistingCustomerPage(this.page!);
  await  controlExistingCutomerPage.enteringValueIntoFiel(value)
 })
-When('User  slicks the search icon', async function (this: ICustomWorld) {
+When('User  clicks the search icon', async function (this: ICustomWorld) {
   const controlExistingCutomerPage = new ControlExistingCustomerPage(this.page!);
  await controlExistingCutomerPage.clickingsearchingIcon()
 })
@@ -34,7 +34,7 @@ When('User clicks the option from the list', async function (this: ICustomWorld)
   await controlExistingCutomerPage.selectingOptionFromFilter()
 })
 
-When('User cliks the logout dropdown button', async function (this: ICustomWorld) {
+When('User clicks the logout dropdown button', async function (this: ICustomWorld) {
      const controlExistingCutomerPage = new ControlExistingCustomerPage(this.page!);
     await controlExistingCutomerPage.clickingLogoutDropdown()
 })

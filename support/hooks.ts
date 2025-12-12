@@ -1,12 +1,24 @@
-import { Before, After, Status, AfterStep } from '@cucumber/cucumber';
+import { Before, After, Status, AfterStep,BeforeStep } from '@cucumber/cucumber';
 import type { ICustomWorld } from './world';
 import { CustomWorld } from './world';
 import * as fs from 'fs/promises';
+import chalk from "chalk";
 
 Before(async function (this: CustomWorld) {
   await this.openBrowser();
 });
 
+BeforeStep(function ({ pickleStep }) {
+    console.log(chalk.yellow(`➡ STEP START: ${pickleStep.text}`));
+});
+
+AfterStep(function ({ result, pickleStep }) {
+    if (result.status === 'PASSED') {
+        console.log(chalk.green(`✓ STEP PASS: ${pickleStep.text}`));
+    } else {
+        console.log(chalk.red(`✗ STEP FAIL: ${pickleStep.text}`));
+    }
+});
 AfterStep(async function (this: ICustomWorld, step) {
   const takeForAllSteps = true;
 
