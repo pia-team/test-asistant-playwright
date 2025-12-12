@@ -24,9 +24,10 @@ async enterUsername(username: string) {
   }
 
 
-async clikingTypeOfsearchingDrop(){
-  await this.page.waitForURL("https://dcm-ui.pi.dev-gcu.com/customer360")
-    await this.page.getByText('person_pin_circle Customer').click();
+async clikingTypeOfsearchingDrop() {
+    const element = this.page.getByText('person_pin_circle Customer');
+    await element.waitFor({ state: 'visible', timeout: 10000 });
+    await element.click();
 }
 
 async selectingTheTypeOfsearcing(type: string) {

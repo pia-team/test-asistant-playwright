@@ -23,6 +23,9 @@ When('User enters password as {string}', async function (this: ICustomWorld, pas
 When('User clicks singIn Btn', async function (this: ICustomWorld) {
   const loginPage = new LoginPage(this.page!);
   await loginPage.clickSignIn();
+  
+  await this.page?.waitForLoadState('load', { timeout: 10000 });
+
 });
 
 Then('User should see url contains {string}', async function (this: ICustomWorld, value: string) {
