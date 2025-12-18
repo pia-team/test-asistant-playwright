@@ -2,12 +2,27 @@ import { Before, After, Status, AfterStep,BeforeStep } from '@cucumber/cucumber'
 import type { ICustomWorld } from './world';
 import { CustomWorld } from './world';
 import * as fs from 'fs/promises';
+import * as path from 'path';
 import chalk from "chalk";
 import { setDefaultTimeout } from '@cucumber/cucumber';
+import { randomUUID } from 'crypto';
 
 setDefaultTimeout(60 * 1000);
 
+// Screenshots directory
+const SCREENSHOTS_DIR = 'reports/screenshots';
+
+// Ensure screenshots directory exists
+async function ensureScreenshotsDir() {
+  try {
+    await fs.mkdir(SCREENSHOTS_DIR, { recursive: true });
+  } catch (e) {
+    // Ignore if already exists
+  }
+}
+
 Before(async function (this: CustomWorld) {
+  await ensureScreenshotsDir();
   await this.openBrowser();
 });
 
@@ -22,11 +37,18 @@ AfterStep(function ({ result, pickleStep }) {
         console.log(chalk.red(`✗ STEP FAIL: ${pickleStep.text}`));
     }
 });
+
 AfterStep(async function (this: ICustomWorld, step) {
   const takeForAllSteps = true;
 
   if (this.page && takeForAllSteps) {
     const buffer = await this.page.screenshot({ fullPage: true });
+    
+    // Save screenshot to file
+    const filename = `${randomUUID()}.png`;
+    const filepath = path.join(SCREENSHOTS_DIR, filename);
+    await fs.writeFile(filepath, buffer);
+    console.log(chalk.cyan(`📸 Screenshot kaydedildi: ${filepath}`));
 
     // ✔ Allure için DOĞRU attachment
     await this.attach(buffer, 'image/png');

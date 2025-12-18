@@ -1,5 +1,0 @@
-{
-  "baseLoginUrl": "https://diam.pi.test-gcu.com/realms/orbitant-realm/protocol/openid-connect/auth?response_type=code&client_id=orbitant-ui-client&state=MWZKR051c2k0S0V2Q1VuTi1PNHdYU2tLVWpXaVBRUjd4LnNpNEtyanNuMUVk&redirect_uri=https%3A%2F%2Fdpc-ui.pi.dev-gcu.com%2Fui%2FproductCatalogManagement&scope=openid&code_challenge=qhtVOjUvSxKQUbOK3Q4LD4JsQtck98UzwAbBX_QE2G0&code_challenge_method=S256&nonce=MWZKR051c2k0S0V2Q1VuTi1PNHdYU2tLVWpXaVBRUjd4LnNpNEtyanNuMUVk",
-  "username": "orbitant",
-  "password": "orbitant123"
-}

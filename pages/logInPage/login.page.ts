@@ -1,105 +1,74 @@
 import { Page, expect } from '@playwright/test';
 import { getEnvConfig } from '../../support/env';
 
-
-
 export class LoginPage {
-  private page: Page;
-  private config = getEnvConfig();
+    private page: Page;
+    private config = getEnvConfig();
+    private baseDomain: string;
 
-  private usernameInput = '#username';
-  private passwordInput = '#password';
-  private signInBtn = '#kc-login';
-  private profileSignDropdownArrowBtnOnPage = "//mat-icon[normalize-space()='keyboard_arrow_down']";
-  private logoutBtnInDropdownOnHomePage = "//span[normalize-space()='Log Out']";
-  private invalidUsernameOrPasswordWarningOnSignInPage = "#input-error";
+    constructor(page: Page) {
+        this.page = page;
+        try {
+            this.baseDomain = new URL(this.config.baseLoginUrl).hostname;
+        } catch {
+            this.baseDomain = this.config.baseLoginUrl;
+        }
+    }
 
+    // ========== LOCATORS (MUST be getters) ==========
+    private get usernameInput() {
+        return this.page.locator('#userName');
+    }
 
-  constructor(page: Page) {
-    this.page = page;
-  }
+    private get passwordInput() {
+        return this.page.locator('#password');
+    }
 
+    private get loginButton() {
+        return this.page.locator('#login');
+    }
 
-  async gotoUrl() {
+    // This element is typically visible after a successful login on demoqa.com
+    private get profileSectionHeader() {
+        return this.page.getByText('Profile');
+    }
 
-    console.log("****************************")
-    console.log(this.config)
-    console.log("***********************")
-    await this.page.goto(this.config.baseLoginUrl, { waitUntil: 'domcontentloaded' });
-    //await this.page.pause();
+    // ========== NAVIGATION ==========
+    async gotoLoginPage() {
+        await this.page.goto(this.config.baseLoginUrl);
+        await this.page.waitForLoadState('domcontentloaded');
+    }
 
-  }
-  async staticWait(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+    // ========== ACTIONS ==========
+    async login() {
+        await this.usernameInput.fill(this.config.username);
+        await this.passwordInput.fill(this.config.password);
+        await this.loginButton.click();
+        await this.page.waitForLoadState('networkidle', { timeout: 30000 });
+    }
 
-  async login1(username?: string, password?: string) {
-    await this.page.fill(this.usernameInput, username || this.config.username);
-    await this.page.fill(this.passwordInput, password || this.config.password);
-    await this.page.click(this.signInBtn);
+    async clickElement(locator: any) {
+        await locator.click();
+        await this.page.waitForLoadState('domcontentloaded');
+    }
 
-  }
+    async fillInput(locator: any, value: string) {
+        await locator.fill(value);
+    }
 
-  async enterUsername(username?: string) {
-    await this.page.fill(this.usernameInput, username || this.config.username);
-  }
+    // ========== ASSERTIONS (Web-First) ==========
+    async assertLoggedIn() {
+        // Wait for page to stabilize
+        await this.page.waitForLoadState('networkidle', { timeout: 30000 });
+        // Assert URL contains profile (demoqa.com redirects to /profile after login)
+        await expect(this.page).toHaveURL(/profile/, { timeout: 15000 });
+    }
 
-  async enterPassword(password?: string) {
-    await this.page.fill(this.passwordInput, password || this.config.password);
-  }
+    async assertElementVisible(locator: any) {
+        await expect(locator).toBeVisible({ timeout: 10000 });
+    }
 
-  async clickSignIn() {
-    await this.page.click(this.signInBtn);
-  }
-
-  async assertUrlContains(value: string) {
-    await this.page.waitForURL(`**/${value}**`);
-    expect(this.page!.url()).toContain(value);
-    await this.page?.waitForTimeout(1000);
-  }
-
-  async getHeaderByText(text: string): Promise<void> {
-    const xpathOfText = this.page.locator(`//*[normalize-space(text()) = "${text}"]`);
-    await xpathOfText.waitFor({ state: 'visible' })
-    const headerText = (await xpathOfText.textContent())?.trim() || '';
-    console.log(`Name of Text is : ${headerText}`);
-    await expect(xpathOfText).toHaveText(text);
-  }
-
-  async controlOfUserName(nameOfCustomer: string): Promise<void> {
-    const textOfName = this.page.locator(`//span[contains(@class,'username') and contains(@class,'capatilize') and normalize-space(text())='${nameOfCustomer}']`);
-    expect(textOfName).toBeVisible;
-    const text = (await textOfName.textContent())?.trim() || '';
-    console.log(`Name of user is: ${text}`);
-  }
-
-
-  async logoutFunction(): Promise<void> {
-    console.log("User is attempting to log out...");
-    expect(this.page.locator(this.profileSignDropdownArrowBtnOnPage)).toBeVisible;
-    await this.page.click(this.profileSignDropdownArrowBtnOnPage);
-    expect(this.page.locator(this.logoutBtnInDropdownOnHomePage)).toBeVisible;
-    await this.page.click(this.logoutBtnInDropdownOnHomePage);
-
-    // Fix: Wait for navigation to complete before verifying login page elements
-    await this.page.waitForLoadState('domcontentloaded');
-
-    console.log("✅ User successfully logged out.")
-  }
-
-  async warningMessageAssertionOnSignIn(expectedMessage: string): Promise<void> {
-    console.log('Verifying warning message on Sign In page...');
-    await expect(this.page.locator(this.invalidUsernameOrPasswordWarningOnSignInPage)).toBeVisible({ timeout: 15000 });
-    await expect(this.page.locator(this.invalidUsernameOrPasswordWarningOnSignInPage)).toHaveText(expectedMessage);
-    const el = this.page.locator(this.invalidUsernameOrPasswordWarningOnSignInPage);
-    const actualMessage = (await el.textContent())?.trim() || '';
-    console.log(`Actual warning message: ${actualMessage}`);
-    expect(actualMessage).toBe(expectedMessage);
-  }
-
+    async assertTextVisible(text: string) {
+        await expect(this.page.getByText(text)).toBeVisible({ timeout: 10000 });
+    }
 }
-
-
-
-
-
