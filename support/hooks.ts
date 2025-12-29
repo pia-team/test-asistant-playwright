@@ -1,4 +1,4 @@
-import { Before, After, Status, AfterStep,BeforeStep } from '@cucumber/cucumber';
+import { Before, After, Status, AfterStep, BeforeStep } from '@cucumber/cucumber';
 import type { ICustomWorld } from './world';
 import { CustomWorld } from './world';
 import * as fs from 'fs/promises';
@@ -27,15 +27,15 @@ Before(async function (this: CustomWorld) {
 });
 
 BeforeStep(function ({ pickleStep }) {
-    console.log(chalk.yellow(`➡ STEP START: ${pickleStep.text}`));
+  console.error(chalk.yellow(`➡ STEP START: ${pickleStep.text}`));
 });
 
 AfterStep(function ({ result, pickleStep }) {
-    if (result.status === 'PASSED') {
-        console.log(chalk.green(`✓ STEP PASS: ${pickleStep.text}`));
-    } else {
-        console.log(chalk.red(`✗ STEP FAIL: ${pickleStep.text}`));
-    }
+  if (result.status === 'PASSED') {
+    console.error(chalk.green(`✓ STEP PASS: ${pickleStep.text}`));
+  } else {
+    console.error(chalk.red(`✗ STEP FAIL: ${pickleStep.text}`));
+  }
 });
 
 AfterStep(async function (this: ICustomWorld, step) {
@@ -43,7 +43,7 @@ AfterStep(async function (this: ICustomWorld, step) {
 
   if (this.page && takeForAllSteps) {
     const buffer = await this.page.screenshot({ fullPage: true });
-    
+
     // Save screenshot to file
     const filename = `${randomUUID()}.png`;
     const filepath = path.join(SCREENSHOTS_DIR, filename);
