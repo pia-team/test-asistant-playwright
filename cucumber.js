@@ -20,12 +20,13 @@ module.exports = {
       //'cucumberjs-allure2-reporter'
     ],
     tags: 'not @ignore',
-    paths: ['features/**/*.feature'],
+    // paths removed - CLI paths will be used for file-based execution
+    // paths: ['features/**/*.feature'],
     timeout: 60_000,
     parallel: 3,               // paralel koşu değerini buradan yönetiyoruz
-    retry: 0 ,                // ⬅️ FAIL olan senaryoları 1 kez daha dene (toplam 3)
+    retry: 0,                // ⬅️ FAIL olan senaryoları 1 kez daha dene (toplam 3)
     // retryTagFilter: '@flaky' // (opsiyonel) sadece @flaky etiketlilere retry uygula
-    dryRun:false             //"senaryo çalışmadan önce step var mı?" kontrolü yapmakiçin true yap
+    dryRun: false             //"senaryo çalışmadan önce step var mı?" kontrolü yapmakiçin true yap
   },
 
   rerun: {
