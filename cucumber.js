@@ -6,8 +6,11 @@ module.exports = {
     requireModule: ['ts-node/register'],
     require: [
       'support/world.ts',
-      'support/hooks.ts',
-      'features/steps/**/*.ts'
+      'support/hooks.ts'
+      // NOTE: Step files are NOT included here!
+      // They are dynamically added via CLI --require arguments
+      // to prevent "Multiple step definitions match" errors
+      // when running specific feature files.
     ],
     publishQuiet: false,
     format: [
@@ -33,8 +36,8 @@ module.exports = {
     requireModule: ['ts-node/register'],
     require: [
       'support/world.ts',
-      'support/hooks.ts',
-      'features/steps/**/*.ts'
+      'support/hooks.ts'
+      // Step files dynamically added via CLI
     ],
     publishQuiet: false,
     format: [
