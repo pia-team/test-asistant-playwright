@@ -21,25 +21,49 @@ async function ensureScreenshotsDir() {
   }
 }
 
-Before(async function (this: CustomWorld) {
+Before(async function (this: CustomWorld, scenario) {
   await ensureScreenshotsDir();
+  
+  // CRITICAL: Extract and store feature name for multi-feature parallel execution
+  // This allows us to include feature context in every step log
+  const featureUri = scenario.pickle?.uri || '';
+  const featureName = featureUri.includes('/') 
+    ? featureUri.substring(featureUri.lastIndexOf('/') + 1).replace('.feature', '')
+    : featureUri.includes('\\')
+    ? featureUri.substring(featureUri.lastIndexOf('\\') + 1).replace('.feature', '')
+    : featureUri.replace('.feature', '');
+  
+  // Store feature name in world for use in step hooks
+  (this as any).currentFeatureName = featureName;
+  
+  if (featureName) {
+    console.log(chalk.magenta(`🎯 FEATURE START: ${featureName}`));
+    console.log(chalk.magenta(`📁 Feature File: ${featureUri}`));
+  }
+  
   await this.openBrowser();
 });
 
-BeforeStep(function ({ pickleStep }) {
-  console.error(chalk.yellow(`➡ STEP START: ${pickleStep.text}`));
+// CRITICAL: Include feature name in EVERY step log for parallel execution support
+BeforeStep(function (this: ICustomWorld, { pickleStep }) {
+  const featureName = (this as any).currentFeatureName || 'unknown';
+  // Format: ➡ STEP START [feature-name]: step text
+  console.error(chalk.yellow(`➡ STEP START [${featureName}]: ${pickleStep.text}`));
 });
 
-AfterStep(function ({ result, pickleStep }) {
+AfterStep(function (this: ICustomWorld, { result, pickleStep }) {
+  const featureName = (this as any).currentFeatureName || 'unknown';
+  // Format: ✓ STEP PASS [feature-name]: step text  OR  ✗ STEP FAIL [feature-name]: step text
   if (result.status === 'PASSED') {
-    console.error(chalk.green(`✓ STEP PASS: ${pickleStep.text}`));
+    console.error(chalk.green(`✓ STEP PASS [${featureName}]: ${pickleStep.text}`));
   } else {
-    console.error(chalk.red(`✗ STEP FAIL: ${pickleStep.text}`));
+    console.error(chalk.red(`✗ STEP FAIL [${featureName}]: ${pickleStep.text}`));
   }
 });
 
 AfterStep(async function (this: ICustomWorld, step) {
   const takeForAllSteps = true;
+  const featureName = (this as any).currentFeatureName || 'unknown';
 
   if (this.page && takeForAllSteps) {
     const buffer = await this.page.screenshot({ fullPage: true });
@@ -48,7 +72,8 @@ AfterStep(async function (this: ICustomWorld, step) {
     const filename = `${randomUUID()}.png`;
     const filepath = path.join(SCREENSHOTS_DIR, filename);
     await fs.writeFile(filepath, buffer);
-    console.log(chalk.cyan(`📸 Screenshot kaydedildi: ${filepath}`));
+    // Include feature name in screenshot log for parallel execution
+    console.log(chalk.cyan(`📸 Screenshot [${featureName}]: ${filepath}`));
 
     // ✔ Allure için DOĞRU attachment
     await this.attach(buffer, 'image/png');
