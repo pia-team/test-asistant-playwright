@@ -17,6 +17,8 @@ export class CustomWorld extends World implements ICustomWorld {
   context?: BrowserContext;
   page?: Page;
 
+  currentFeatureName?: string;
+
   constructor(options: IWorldOptions) {
     super(options);
   }
@@ -68,15 +70,24 @@ export class CustomWorld extends World implements ICustomWorld {
   }
 
   async closeBrowser() {
-    // ✅ Video dosyasını senaryo bitince almak için:
     const video = this.page?.video();
-    if (video) {
-      const videoPath = await video.path();
-      console.log(`🎥 Video kaydedildi: ${videoPath}`);
-    }
+    const featureName = this.currentFeatureName || 'unknown';
+
+    // Close everything first to allow the video to be finalized
     await this.page?.close();
     await this.context?.close();
     await this.browser?.close();
+
+    // Now get the path - Playwright guarantees it's ready after context close
+    if (video) {
+      try {
+        const videoPath = await video.path();
+        // CRITICAL: Include feature name in brackets for routing [feature-name]
+        console.log(`🎥 Video kaydedildi [${featureName}]: ${videoPath}`);
+      } catch (e) {
+        console.error(`❌ Video path extraction error: ${e}`);
+      }
+    }
   }
 }
 

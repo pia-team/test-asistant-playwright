@@ -7,7 +7,7 @@ import chalk from "chalk";
 import { setDefaultTimeout } from '@cucumber/cucumber';
 import { randomUUID } from 'crypto';
 
-setDefaultTimeout(60 * 1000);
+setDefaultTimeout(120 * 1000);
 
 // Screenshots directory
 const SCREENSHOTS_DIR = 'reports/screenshots';
@@ -23,24 +23,24 @@ async function ensureScreenshotsDir() {
 
 Before(async function (this: CustomWorld, scenario) {
   await ensureScreenshotsDir();
-  
+
   // CRITICAL: Extract and store feature name for multi-feature parallel execution
   // This allows us to include feature context in every step log
   const featureUri = scenario.pickle?.uri || '';
-  const featureName = featureUri.includes('/') 
+  const featureName = featureUri.includes('/')
     ? featureUri.substring(featureUri.lastIndexOf('/') + 1).replace('.feature', '')
     : featureUri.includes('\\')
-    ? featureUri.substring(featureUri.lastIndexOf('\\') + 1).replace('.feature', '')
-    : featureUri.replace('.feature', '');
-  
+      ? featureUri.substring(featureUri.lastIndexOf('\\') + 1).replace('.feature', '')
+      : featureUri.replace('.feature', '');
+
   // Store feature name in world for use in step hooks
   (this as any).currentFeatureName = featureName;
-  
+
   if (featureName) {
     console.log(chalk.magenta(`🎯 FEATURE START: ${featureName}`));
     console.log(chalk.magenta(`📁 Feature File: ${featureUri}`));
   }
-  
+
   await this.openBrowser();
 });
 
@@ -66,7 +66,9 @@ AfterStep(async function (this: ICustomWorld, step) {
   const featureName = (this as any).currentFeatureName || 'unknown';
 
   if (this.page && takeForAllSteps) {
-    const buffer = await this.page.screenshot({ fullPage: true });
+    // CRITICAL OPTIMIZATION: Use fullPage: false for step-by-step screenshots 
+    // to reduce memory/disk overhead during parallel runs which causes 60s timeouts
+    const buffer = await this.page.screenshot({ fullPage: false });
 
     // Save screenshot to file
     const filename = `${randomUUID()}.png`;
@@ -83,37 +85,52 @@ AfterStep(async function (this: ICustomWorld, step) {
 After(async function (this: ICustomWorld, scenario) {
   const status = scenario.result?.status;
 
-  const videoPathPromise = this.page?.video()?.path();
-
-  if (this.page) {
-    const png = await this.page.screenshot({ fullPage: true });
-
-    // ✔ Allure + HTML raporu için doğru kullanım
-    await this.attach(png, 'image/png');
-  }
-
-  await this.closeBrowser();
-
-  if (status !== Status.FAILED || !videoPathPromise) return;
-
-  const videoPath = await videoPathPromise;
-
-  let videoBuffer: Buffer | null = null;
-
-  for (let i = 0; i < 10; i++) {
+  // No need to take a screenshot here if the test passed, 
+  // because AfterStep already took one for the last step.
+  // This saves significant time in parallel execution.
+  if (this.page && status === Status.FAILED) {
     try {
-      videoBuffer = await fs.readFile(videoPath);
-      break;
-    } catch (e: any) {
-      if (e.code !== 'ENOENT') throw e;
-      await new Promise(r => setTimeout(r, 200));
+      const png = await this.page.screenshot({ fullPage: true, timeout: 10000 });
+      // ✔ Allure + HTML raporu için doğru kullanım
+      await this.attach(png, 'image/png');
+    } catch (e) {
+      console.warn(`⚠️ Final screenshot failed: ${e}`);
     }
   }
 
-  // ✔ Allure için video attach
-  if (videoBuffer) {
-    await this.attach(videoBuffer, 'video/webm');
-  } else {
-    await this.attach(`Video not found: ${videoPath}`, 'text/plain');
+  // CRITICAL: closeBrowser now handles video logging and closing browsers in correct order
+  try {
+    await this.closeBrowser();
+  } catch (e) {
+    console.error(`❌ Browser closure error: ${e}`);
+  }
+
+  // Video attachment for Allure (only on failure)
+  if (status !== Status.FAILED) return;
+
+  // For failure, we try to attach the video to Allure
+  // The video path is logged by closeBrowser, but we can still get it here for attachment
+  try {
+    const video = this.page?.video();
+    if (!video) return;
+
+    const videoPath = await video.path();
+    let videoBuffer: Buffer | null = null;
+
+    for (let i = 0; i < 10; i++) {
+      try {
+        videoBuffer = await fs.readFile(videoPath);
+        break;
+      } catch (e: any) {
+        if (e.code !== 'ENOENT') throw e;
+        await new Promise(r => setTimeout(r, 200));
+      }
+    }
+
+    if (videoBuffer) {
+      await this.attach(videoBuffer, 'video/webm');
+    }
+  } catch (e) {
+    console.warn(`⚠️ Video attachment failed: ${e}`);
   }
 });
