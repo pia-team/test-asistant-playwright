@@ -1,6 +1,8 @@
+declare const process: any;
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
+  workers: process.env.THREADS ? parseInt(process.env.THREADS) : undefined,
   use: {
     viewport: { width: 1366, height: 768 }, // Full HD resolution for consistent recording
     launchOptions: {

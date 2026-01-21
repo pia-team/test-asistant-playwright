@@ -6,7 +6,15 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node", "@cucumber/cucumber"]
+    "types": [
+      "node",
+      "@cucumber/cucumber"
+    ]
   },
-  "include": ["features/**/*.ts", "support/**/*.ts", "steps/login.steps.ts"]
+  "include": [
+    "features/**/*.ts",
+    "support/**/*.ts",
+    "steps/login.steps.ts",
+    "playwright.config.ts"
+  ]
 }
