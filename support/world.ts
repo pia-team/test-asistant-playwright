@@ -65,8 +65,6 @@ export class CustomWorld extends World implements ICustomWorld {
     });
 
     this.page = await this.context.newPage();
-    // (Opsiyonel) sayfa yüklenene kadar beklet
-    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async closeBrowser() {
