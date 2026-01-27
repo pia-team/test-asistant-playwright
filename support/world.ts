@@ -1,5 +1,6 @@
 import { setWorldConstructor, World, IWorldOptions } from '@cucumber/cucumber';
 import { Browser, BrowserContext, Page, chromium, firefox, webkit } from 'playwright';
+import type { IBasePage } from './pageFactory';
 
 // Supported browsers: chromium, firefox, webkit (Safari)
 type BrowserType = 'chromium' | 'firefox' | 'webkit';
@@ -8,6 +9,8 @@ export interface ICustomWorld extends World {
   browser?: Browser;
   context?: BrowserContext;
   page?: Page;
+  // CRITICAL: Per-scenario page object instance (NOT shared globally)
+  pageInstance?: IBasePage;
   openBrowser: () => Promise<void>;
   closeBrowser: () => Promise<void>;
 }
@@ -16,6 +19,8 @@ export class CustomWorld extends World implements ICustomWorld {
   browser?: Browser;
   context?: BrowserContext;
   page?: Page;
+  // CRITICAL: Per-scenario page object instance to avoid race conditions in parallel execution
+  pageInstance?: IBasePage;
 
   currentFeatureName?: string;
 
