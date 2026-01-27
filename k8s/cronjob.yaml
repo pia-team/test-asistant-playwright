@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: playwright-scheduled-tests
+  namespace: playwright
+  labels:
+    app: playwright-tests
+spec:
+  schedule: "0 6 * * *"  # Run daily at 6 AM UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app: playwright-tests
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: playwright
+              image: 187751842432.dkr.ecr.eu-west-1.amazonaws.com/playwright-cucumber-bdd:latest
+              imagePullPolicy: Always
+              env:
+                - name: TEST_ENV
+                  value: "dev"
+                - name: THREADS
+                  value: "2"
+              resources:
+                requests:
+                  memory: "2Gi"
+                  cpu: "1000m"
+                limits:
+                  memory: "4Gi"
+                  cpu: "2000m"
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /app/config
+                  readOnly: true
+                - name: test-results
+                  mountPath: /app/test-results
+                - name: shm
+                  mountPath: /dev/shm
+          volumes:
+            - name: config-volume
+              configMap:
+                name: playwright-config
+            - name: test-results
+              emptyDir: {}
+            - name: shm
+              emptyDir:
+                medium: Memory
+                sizeLimit: "2Gi"

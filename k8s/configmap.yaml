@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: playwright-config
+  namespace: playwright
+data:
+  dev.json: |
+    {
+      "baseLoginUrl": "https://dcm-ui.pi.dev-gcu.com/",
+      "username": "orbitant",
+      "password": "orbitant123"
+    }
