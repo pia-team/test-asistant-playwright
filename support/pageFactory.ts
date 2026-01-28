@@ -11,6 +11,11 @@ export interface IBasePage {
     fillField(fieldName: string, value: string): Promise<void>;
     clickElement(elementName: string): Promise<void>;
     getEnvironmentConfig(): Promise<{ baseLoginUrl: string;[key: string]: string }>;
+    // Optional methods for extended functionality - page objects can implement these
+    pressKeyInField?(fieldName: string, key: string): Promise<void>;
+    uploadFile?(fieldIdentifier: string, filePath: string): Promise<void>;
+    checkCheckbox?(checkboxIdentifier: string): Promise<void>;
+    selectDropdownOption?(dropdownName: string, optionName: string): Promise<void>;
 }
 
 /**
