@@ -24,6 +24,8 @@ async function ensureScreenshotsDir() {
 Before(async function (this: CustomWorld, scenario) {
   await ensureScreenshotsDir();
 
+  this.scenarioVars = {};
+
   // CRITICAL: Extract and store feature name for multi-feature parallel execution
   // This allows us to include feature context in every step log
   const featureUri = scenario.pickle?.uri || '';
@@ -33,8 +35,7 @@ Before(async function (this: CustomWorld, scenario) {
       ? featureUri.substring(featureUri.lastIndexOf('\\') + 1).replace('.feature', '')
       : featureUri.replace('.feature', '');
 
-  // Store feature name in world for use in step hooks
-  (this as any).currentFeatureName = featureName;
+  this.currentFeatureName = featureName;
 
   if (featureName) {
     console.log(chalk.magenta(`🎯 FEATURE START: ${featureName}`));
@@ -46,13 +47,13 @@ Before(async function (this: CustomWorld, scenario) {
 
 // CRITICAL: Include feature name in EVERY step log for parallel execution support
 BeforeStep(function (this: ICustomWorld, { pickleStep }) {
-  const featureName = (this as any).currentFeatureName || 'unknown';
+  const featureName = this.currentFeatureName || 'unknown';
   // Format: ➡ STEP START [feature-name]: step text
   console.error(chalk.yellow(`➡ STEP START [${featureName}]: ${pickleStep.text}`));
 });
 
 AfterStep(function (this: ICustomWorld, { result, pickleStep }) {
-  const featureName = (this as any).currentFeatureName || 'unknown';
+  const featureName = this.currentFeatureName || 'unknown';
   // Format: ✓ STEP PASS [feature-name]: step text  OR  ✗ STEP FAIL [feature-name]: step text
   if (result.status === 'PASSED') {
     console.error(chalk.green(`✓ STEP PASS [${featureName}]: ${pickleStep.text}`));
@@ -63,7 +64,7 @@ AfterStep(function (this: ICustomWorld, { result, pickleStep }) {
 
 AfterStep(async function (this: ICustomWorld, step) {
   const takeForAllSteps = true;
-  const featureName = (this as any).currentFeatureName || 'unknown';
+  const featureName = this.currentFeatureName || 'unknown';
 
   if (this.page && takeForAllSteps) {
     // CRITICAL OPTIMIZATION: Use fullPage: false for step-by-step screenshots 
