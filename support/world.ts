@@ -5,24 +5,37 @@ import type { IBasePage } from './pageFactory';
 // Supported browsers: chromium, firefox, webkit (Safari)
 type BrowserType = 'chromium' | 'firefox' | 'webkit';
 
-export interface ICustomWorld extends World {
+/**
+ * Custom fields merged onto Cucumber's {@link World}.
+ * Use a `World & { ... }` intersection so step defs see these members on `this: ICustomWorld`
+ * (the default `World` class type does not carry `IWorld`'s index signature through `extends`).
+ */
+type CustomWorldState = {
   browser?: Browser;
   context?: BrowserContext;
   page?: Page;
-  // CRITICAL: Per-scenario page object instance (NOT shared globally)
+  /** Per-scenario page object instance (not shared globally). */
   pageInstance?: IBasePage;
+  /** Set in Before hook from the running feature path; used in step logging. */
+  currentFeatureName?: string;
+  /**
+   * Per-scenario key/value data between steps.
+   * Reset to `{}` in `support/hooks.ts` Before hook.
+   */
+  scenarioVars: Record<string, string>;
   openBrowser: () => Promise<void>;
   closeBrowser: () => Promise<void>;
-}
+};
+
+export type ICustomWorld = World & CustomWorldState;
 
 export class CustomWorld extends World implements ICustomWorld {
   browser?: Browser;
   context?: BrowserContext;
   page?: Page;
-  // CRITICAL: Per-scenario page object instance to avoid race conditions in parallel execution
   pageInstance?: IBasePage;
-
   currentFeatureName?: string;
+  scenarioVars: Record<string, string> = {};
 
   constructor(options: IWorldOptions) {
     super(options);
