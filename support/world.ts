@@ -1,9 +1,26 @@
 import { setWorldConstructor, World, IWorldOptions } from '@cucumber/cucumber';
 import { Browser, BrowserContext, Page, chromium, firefox, webkit } from 'playwright';
+import type { BrowserContextOptions } from 'playwright';
 import type { IBasePage } from './pageFactory';
 
 // Supported browsers: chromium, firefox, webkit (Safari)
 type BrowserType = 'chromium' | 'firefox' | 'webkit';
+
+function isVideoRecordingEnabled(): boolean {
+  const raw = (process.env.VIDEO_RECORDING ?? process.env.video ?? 'on').toLowerCase();
+  return raw !== 'off' && raw !== 'false' && raw !== '0';
+}
+
+function resolveSlowMo(): number {
+  const explicit = process.env.SLOW_MO;
+  if (explicit != null && explicit.trim() !== '') {
+    const parsed = parseInt(explicit, 10);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  const screenshotMode = (process.env.SCREENSHOT_MODE ?? process.env.screenshot ?? 'ALL_STEPS').toUpperCase();
+  const normalized = screenshotMode === 'ON' ? 'ALL_STEPS' : screenshotMode === 'OFF' ? 'NONE' : screenshotMode;
+  return normalized === 'ALL_STEPS' ? 200 : 0;
+}
 
 /**
  * Custom fields merged onto Cucumber's {@link World}.
@@ -18,6 +35,8 @@ type CustomWorldState = {
   pageInstance?: IBasePage;
   /** Set in Before hook from the running feature path; used in step logging. */
   currentFeatureName?: string;
+  /** Set in Before hook from features/{project}/… path; drives per-project env config. */
+  scenarioProjectKey?: string;
   /**
    * Per-scenario key/value data between steps.
    * Reset to `{}` in `support/hooks.ts` Before hook.
@@ -35,6 +54,7 @@ export class CustomWorld extends World implements ICustomWorld {
   page?: Page;
   pageInstance?: IBasePage;
   currentFeatureName?: string;
+  scenarioProjectKey?: string;
   scenarioVars: Record<string, string> = {};
 
   constructor(options: IWorldOptions) {
@@ -53,9 +73,9 @@ export class CustomWorld extends World implements ICustomWorld {
   async openBrowser() {
     const browserType = this.getBrowserType();
     const headless = process.env.HEADLESS !== 'false'; // default true
-    const slowMo = parseInt(process.env.SLOW_MO || '200', 10);
+    const slowMo = resolveSlowMo();
 
-    console.log(`🌐 Browser: ${browserType} | Headless: ${headless} | SlowMo: ${slowMo}ms`);
+    console.log(`🌐 Browser: ${browserType} | Headless: ${headless} | SlowMo: ${slowMo}ms | Video: ${isVideoRecordingEnabled() ? 'on' : 'off'}`);
 
     const launchOptions = {
       headless,
@@ -73,14 +93,16 @@ export class CustomWorld extends World implements ICustomWorld {
       default:
         this.browser = await chromium.launch(launchOptions);
     }
-    // ✅ Video kaydı burada açıldı
-    this.context = await this.browser.newContext({
-      viewport: { width: 1920, height: 1080 }, // Viewport video ile aynı olmalı
-      recordVideo: {
+    const contextOptions: BrowserContextOptions = {
+      viewport: { width: 1920, height: 1080 },
+    };
+    if (isVideoRecordingEnabled()) {
+      contextOptions.recordVideo = {
         dir: 'reports/videos/',
-        size: { width: 1920, height: 1080 } // Global ayarlar ile uyumlu 1080p
-      }
-    });
+        size: { width: 1920, height: 1080 },
+      };
+    }
+    this.context = await this.browser.newContext(contextOptions);
 
     this.page = await this.context.newPage();
   }

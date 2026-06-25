@@ -6,7 +6,7 @@ import * as path from 'path';
  * ALL generated Playwright tests MUST use only these 3 fields.
  * Do NOT add additional fields - keep it simple and universal.
  */
-interface EnvConfig {
+export interface EnvConfig {
   /** The base URL for login page navigation */
   baseLoginUrl: string;
   /** Login username/email */
@@ -15,12 +15,83 @@ interface EnvConfig {
   password: string;
 }
 
-export function getEnvConfig(): EnvConfig {
-  const env = process.env.TEST_ENV || 'dev'; // default to dev
-  const filePath = path.resolve(__dirname, `../config/${env}.json`);
+const EXCLUDED_PROJECT_FOLDERS = new Set(['steps', 'pages', 'records']);
 
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Config file for environment '${env}' not found: ${filePath}`);
+/** Per-scenario project key (set in hooks Before, cleared in After). */
+let scenarioProjectKey: string | undefined;
+
+export function setScenarioProjectKey(projectKey: string | undefined): void {
+  scenarioProjectKey = projectKey?.trim() || undefined;
+}
+
+export function getScenarioProjectKey(): string | undefined {
+  return scenarioProjectKey;
+}
+
+/**
+ * Extract project key from a Cucumber feature URI/path.
+ * Example: features/GCU/Create/foo.feature -> GCU
+ */
+export function extractProjectKeyFromFeatureUri(featureUri: string): string | undefined {
+  if (!featureUri) {
+    return undefined;
+  }
+
+  const normalized = featureUri.replace(/\\/g, '/');
+  const match = normalized.match(/(?:^|\/)features\/([^/]+)\//i);
+  if (!match) {
+    return undefined;
+  }
+
+  const key = match[1].trim();
+  if (!key || EXCLUDED_PROJECT_FOLDERS.has(key.toLowerCase())) {
+    return undefined;
+  }
+
+  return key;
+}
+
+function resolveConfigFilePath(projectKey: string | undefined, tier: string): string | null {
+  const projectsDir = path.resolve(__dirname, '../config/projects');
+
+  if (projectKey) {
+    const tieredPath = path.join(projectsDir, `${projectKey}.${tier}.json`);
+    if (fs.existsSync(tieredPath)) {
+      return tieredPath;
+    }
+
+    const projectPath = path.join(projectsDir, `${projectKey}.json`);
+    if (fs.existsSync(projectPath)) {
+      return projectPath;
+    }
+  }
+
+  const legacyPath = path.resolve(__dirname, `../config/${tier}.json`);
+  if (fs.existsSync(legacyPath)) {
+    return legacyPath;
+  }
+
+  return null;
+}
+
+/**
+ * Load credentials for the current scenario.
+ * Priority: config/projects/{project}.{tier}.json -> config/projects/{project}.json -> config/{tier}.json
+ */
+export function getEnvConfig(projectKey?: string): EnvConfig {
+  const tier = process.env.TEST_ENV || 'dev';
+  const effectiveProjectKey = projectKey ?? getScenarioProjectKey();
+  const filePath = resolveConfigFilePath(effectiveProjectKey, tier);
+
+  if (!filePath) {
+    const hint = effectiveProjectKey
+      ? `config/projects/${effectiveProjectKey}.${tier}.json or config/projects/${effectiveProjectKey}.json`
+      : `config/${tier}.json`;
+    throw new Error(
+      `Config file not found for TEST_ENV='${tier}'` +
+        (effectiveProjectKey ? ` project='${effectiveProjectKey}'` : '') +
+        `. Expected: ${hint}`,
+    );
   }
 
   const raw = fs.readFileSync(filePath, 'utf-8');

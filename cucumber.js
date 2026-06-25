@@ -1,4 +1,4 @@
-// cucumber.js
+ // cucumber.js
 console.log(">>> CUCUMBER CONFIG LOADED <<<");
 
 module.exports = {

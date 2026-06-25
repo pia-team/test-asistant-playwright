@@ -1,6 +1,7 @@
 import { Before, After, Status, AfterStep, BeforeStep } from '@cucumber/cucumber';
 import type { ICustomWorld } from './world';
 import { CustomWorld } from './world';
+import { extractProjectKeyFromFeatureUri, setScenarioProjectKey } from './env';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import chalk from "chalk";
@@ -12,6 +13,33 @@ setDefaultTimeout(120 * 1000);
 // Screenshots directory
 const SCREENSHOTS_DIR = 'reports/screenshots';
 
+type ScreenshotMode = 'ALL_STEPS' | 'FAIL_ONLY' | 'FAIL_AND_LAST_PASS' | 'NONE';
+
+function getScreenshotMode(): ScreenshotMode {
+  const raw = (process.env.SCREENSHOT_MODE ?? process.env.screenshot ?? 'ALL_STEPS').toUpperCase();
+  if (raw === 'ON') return 'ALL_STEPS';
+  if (raw === 'OFF') return 'NONE';
+  if (raw === 'ALL_STEPS' || raw === 'FAIL_ONLY' || raw === 'FAIL_AND_LAST_PASS' || raw === 'NONE') {
+    return raw;
+  }
+  return 'ALL_STEPS';
+}
+
+function shouldTakeStepScreenshot(mode: ScreenshotMode, status: string, isLastStep: boolean): boolean {
+  switch (mode) {
+    case 'ALL_STEPS':
+      return true;
+    case 'FAIL_ONLY':
+      return status !== 'PASSED';
+    case 'FAIL_AND_LAST_PASS':
+      return status !== 'PASSED' || isLastStep;
+    case 'NONE':
+      return false;
+    default:
+      return true;
+  }
+}
+
 // Ensure screenshots directory exists
 async function ensureScreenshotsDir() {
   try {
@@ -19,6 +47,17 @@ async function ensureScreenshotsDir() {
   } catch (e) {
     // Ignore if already exists
   }
+}
+
+async function captureStepScreenshot(world: ICustomWorld, featureName: string): Promise<void> {
+  if (!world.page) return;
+
+  const buffer = await world.page.screenshot({ fullPage: false });
+  const filename = `${randomUUID()}.png`;
+  const filepath = path.join(SCREENSHOTS_DIR, filename);
+  await fs.writeFile(filepath, buffer);
+  console.log(chalk.cyan(`📸 Screenshot [${featureName}]: ${filepath}`));
+  await world.attach(buffer, 'image/png');
 }
 
 Before(async function (this: CustomWorld, scenario) {
@@ -29,6 +68,10 @@ Before(async function (this: CustomWorld, scenario) {
   // CRITICAL: Extract and store feature name for multi-feature parallel execution
   // This allows us to include feature context in every step log
   const featureUri = scenario.pickle?.uri || '';
+  const projectKey = extractProjectKeyFromFeatureUri(featureUri);
+  this.scenarioProjectKey = projectKey;
+  setScenarioProjectKey(projectKey);
+
   const featureName = featureUri.includes('/')
     ? featureUri.substring(featureUri.lastIndexOf('/') + 1).replace('.feature', '')
     : featureUri.includes('\\')
@@ -40,6 +83,9 @@ Before(async function (this: CustomWorld, scenario) {
   if (featureName) {
     console.log(chalk.magenta(`🎯 FEATURE START: ${featureName}`));
     console.log(chalk.magenta(`📁 Feature File: ${featureUri}`));
+    if (projectKey) {
+      console.log(chalk.magenta(`🏷️ Project env: ${projectKey} (TEST_ENV=${process.env.TEST_ENV || 'dev'})`));
+    }
   }
 
   await this.openBrowser();
@@ -52,47 +98,41 @@ BeforeStep(function (this: ICustomWorld, { pickleStep }) {
   console.error(chalk.yellow(`➡ STEP START [${featureName}]: ${pickleStep.text}`));
 });
 
-AfterStep(function (this: ICustomWorld, { result, pickleStep }) {
+AfterStep(async function (this: ICustomWorld, { result, pickleStep, pickle }) {
   const featureName = this.currentFeatureName || 'unknown';
-  // Format: ✓ STEP PASS [feature-name]: step text  OR  ✗ STEP FAIL [feature-name]: step text
-  if (result.status === 'PASSED') {
+  const status = result.status;
+
+  if (status === 'PASSED') {
     console.error(chalk.green(`✓ STEP PASS [${featureName}]: ${pickleStep.text}`));
   } else {
     console.error(chalk.red(`✗ STEP FAIL [${featureName}]: ${pickleStep.text}`));
   }
-});
 
-AfterStep(async function (this: ICustomWorld, step) {
-  const takeForAllSteps = true;
-  const featureName = this.currentFeatureName || 'unknown';
+  const mode = getScreenshotMode();
+  const steps = pickle?.steps ?? [];
+  const isLastStep = steps.length > 0 && steps[steps.length - 1].id === pickleStep.id;
 
-  if (this.page && takeForAllSteps) {
-    // CRITICAL OPTIMIZATION: Use fullPage: false for step-by-step screenshots 
-    // to reduce memory/disk overhead during parallel runs which causes 60s timeouts
-    const buffer = await this.page.screenshot({ fullPage: false });
+  if (!shouldTakeStepScreenshot(mode, status, isLastStep)) {
+    return;
+  }
 
-    // Save screenshot to file
-    const filename = `${randomUUID()}.png`;
-    const filepath = path.join(SCREENSHOTS_DIR, filename);
-    await fs.writeFile(filepath, buffer);
-    // Include feature name in screenshot log for parallel execution
-    console.log(chalk.cyan(`📸 Screenshot [${featureName}]: ${filepath}`));
-
-    // ✔ Allure için DOĞRU attachment
-    await this.attach(buffer, 'image/png');
+  try {
+    await captureStepScreenshot(this, featureName);
+  } catch (e) {
+    console.warn(`⚠️ Step screenshot failed: ${e}`);
   }
 });
 
 After(async function (this: ICustomWorld, scenario) {
   const status = scenario.result?.status;
+  const screenshotMode = getScreenshotMode();
 
-  // No need to take a screenshot here if the test passed, 
-  // because AfterStep already took one for the last step.
-  // This saves significant time in parallel execution.
-  if (this.page && status === Status.FAILED) {
+  this.scenarioProjectKey = undefined;
+  setScenarioProjectKey(undefined);
+
+  if (this.page && status === Status.FAILED && screenshotMode !== 'NONE') {
     try {
       const png = await this.page.screenshot({ fullPage: true, timeout: 10000 });
-      // ✔ Allure + HTML raporu için doğru kullanım
       await this.attach(png, 'image/png');
     } catch (e) {
       console.warn(`⚠️ Final screenshot failed: ${e}`);
