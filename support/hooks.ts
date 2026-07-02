@@ -1,7 +1,11 @@
 import { Before, After, Status, AfterStep, BeforeStep } from '@cucumber/cucumber';
 import type { ICustomWorld } from './world';
 import { CustomWorld } from './world';
-import { extractProjectKeyFromFeatureUri, setScenarioProjectKey } from './env';
+import {
+  extractProjectKeyFromFeatureUri,
+  resetEnvConfigLogCache,
+  setScenarioProjectKey,
+} from './env';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import chalk from "chalk";
@@ -71,6 +75,7 @@ Before(async function (this: CustomWorld, scenario) {
   const projectKey = extractProjectKeyFromFeatureUri(featureUri);
   this.scenarioProjectKey = projectKey;
   setScenarioProjectKey(projectKey);
+  resetEnvConfigLogCache();
 
   const featureName = featureUri.includes('/')
     ? featureUri.substring(featureUri.lastIndexOf('/') + 1).replace('.feature', '')
