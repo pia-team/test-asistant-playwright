@@ -1,7 +1,7 @@
 import { Before, After, Status, AfterStep, BeforeStep } from '@cucumber/cucumber';
 import type { ICustomWorld } from './world';
 import { CustomWorld } from './world';
-import { extractProjectKeyFromFeatureUri, setScenarioProjectKey } from './env';
+import { extractProjectKeyFromFeatureUri, setScenarioProjectKey, setScenarioCredentialProfile } from './env';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import chalk from "chalk";
@@ -72,6 +72,16 @@ Before(async function (this: CustomWorld, scenario) {
   this.scenarioProjectKey = projectKey;
   setScenarioProjectKey(projectKey);
 
+  const credentialTag = scenario.pickle.tags.find((tag) =>
+    tag.name.toLowerCase().startsWith('credential:'),
+  );
+  if (credentialTag) {
+    const slug = credentialTag.name.split(':').slice(1).join(':').trim();
+    if (slug) {
+      setScenarioCredentialProfile(slug);
+    }
+  }
+
   const featureName = featureUri.includes('/')
     ? featureUri.substring(featureUri.lastIndexOf('/') + 1).replace('.feature', '')
     : featureUri.includes('\\')
@@ -129,6 +139,7 @@ After(async function (this: ICustomWorld, scenario) {
 
   this.scenarioProjectKey = undefined;
   setScenarioProjectKey(undefined);
+  setScenarioCredentialProfile(undefined);
 
   if (this.page && status === Status.FAILED && screenshotMode !== 'NONE') {
     try {

@@ -20,12 +20,23 @@ const EXCLUDED_PROJECT_FOLDERS = new Set(['steps', 'pages', 'records']);
 /** Per-scenario project key (set in hooks Before, cleared in After). */
 let scenarioProjectKey: string | undefined;
 
+/** Per-scenario credential profile slug override from @credential:slug tag. */
+let scenarioCredentialProfile: string | undefined;
+
 export function setScenarioProjectKey(projectKey: string | undefined): void {
   scenarioProjectKey = projectKey?.trim() || undefined;
 }
 
 export function getScenarioProjectKey(): string | undefined {
   return scenarioProjectKey;
+}
+
+export function setScenarioCredentialProfile(profileSlug: string | undefined): void {
+  scenarioCredentialProfile = profileSlug?.trim() || undefined;
+}
+
+export function getScenarioCredentialProfile(): string | undefined {
+  return scenarioCredentialProfile;
 }
 
 /**
@@ -51,8 +62,20 @@ export function extractProjectKeyFromFeatureUri(featureUri: string): string | un
   return key;
 }
 
-function resolveConfigFilePath(projectKey: string | undefined, tier: string): string | null {
+function resolveConfigFilePath(projectKey: string | undefined, tier: string, profileSlug?: string): string | null {
   const projectsDir = path.resolve(__dirname, '../config/projects');
+  const slug =
+    profileSlug ??
+    getScenarioCredentialProfile() ??
+    process.env.UI_CREDENTIAL_PROFILE ??
+    undefined;
+
+  if (projectKey && slug) {
+    const slugPath = path.join(projectsDir, `${projectKey}.${tier}.${slug}.json`);
+    if (fs.existsSync(slugPath)) {
+      return slugPath;
+    }
+  }
 
   if (projectKey) {
     const tieredPath = path.join(projectsDir, `${projectKey}.${tier}.json`);
@@ -76,7 +99,7 @@ function resolveConfigFilePath(projectKey: string | undefined, tier: string): st
 
 /**
  * Load credentials for the current scenario.
- * Priority: config/projects/{project}.{tier}.json -> config/projects/{project}.json -> config/{tier}.json
+ * Priority: @credential slug -> UI_CREDENTIAL_PROFILE -> tiered -> legacy paths
  */
 export function getEnvConfig(projectKey?: string): EnvConfig {
   const tier = process.env.TEST_ENV || 'dev';
