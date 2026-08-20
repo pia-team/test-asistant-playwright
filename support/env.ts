@@ -46,6 +46,8 @@ const LEGACY_CONFIG_DIR = path.join(PROJECT_ROOT, 'config');
 /** Per-scenario project key (set in hooks Before, cleared in After). */
 let scenarioProjectKey: string | undefined;
 
+/** Per-scenario credential profile slug override from @credential:slug tag. */
+let scenarioCredentialProfile: string | undefined;
 /** Dedupe identical resolution logs within the same worker process. */
 const loggedResolutionKeys = new Set<string>();
 
@@ -55,6 +57,14 @@ export function setScenarioProjectKey(projectKey: string | undefined): void {
 
 export function getScenarioProjectKey(): string | undefined {
   return scenarioProjectKey;
+}
+
+export function setScenarioCredentialProfile(profileSlug: string | undefined): void {
+  scenarioCredentialProfile = profileSlug?.trim() || undefined;
+}
+
+export function getScenarioCredentialProfile(): string | undefined {
+  return scenarioCredentialProfile;
 }
 
 /**
@@ -80,6 +90,20 @@ export function extractProjectKeyFromFeatureUri(featureUri: string): string | un
   return key;
 }
 
+function resolveConfigFilePath(projectKey: string | undefined, tier: string, profileSlug?: string): string | null {
+  const projectsDir = path.resolve(__dirname, '../config/projects');
+  const slug =
+    profileSlug ??
+    getScenarioCredentialProfile() ??
+    process.env.UI_CREDENTIAL_PROFILE ??
+    undefined;
+
+  if (projectKey && slug) {
+    const slugPath = path.join(projectsDir, `${projectKey}.${tier}.${slug}.json`);
+    if (fs.existsSync(slugPath)) {
+      return slugPath;
+    }
+  }
 function normalizeTier(tier?: string): string {
   const normalized = (tier ?? 'dev').trim().toLowerCase();
   return normalized || 'dev';
@@ -251,6 +275,8 @@ function logEnvResolution(resolved: ResolvedEnvConfig): void {
 }
 
 /**
+ * Load credentials for the current scenario.
+ * Priority: @credential slug -> UI_CREDENTIAL_PROFILE -> tiered -> legacy paths
  * Resolves environment config with full metadata (source file, fallback flags, etc.).
  * Priority: config/projects/{project}.{tier}.json -> config/projects/{project}.json -> config/{tier}.json
  */

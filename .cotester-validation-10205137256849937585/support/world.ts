@@ -42,8 +42,6 @@ type CustomWorldState = {
    * Reset to `{}` in `support/hooks.ts` Before hook.
    */
   scenarioVars: Record<string, string>;
-  /** Optional network capture for Test Flow bindings. */
-  flowCapture?: import('./flow-capture').FlowCaptureSession;
   openBrowser: () => Promise<void>;
   closeBrowser: () => Promise<void>;
 };
@@ -58,7 +56,6 @@ export class CustomWorld extends World implements ICustomWorld {
   currentFeatureName?: string;
   scenarioProjectKey?: string;
   scenarioVars: Record<string, string> = {};
-  flowCapture?: import('./flow-capture').FlowCaptureSession;
 
   constructor(options: IWorldOptions) {
     super(options);
