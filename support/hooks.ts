@@ -2,6 +2,11 @@ import { Before, After, Status, AfterStep, BeforeStep } from '@cucumber/cucumber
 import type { ICustomWorld } from './world';
 import { CustomWorld } from './world';
 import { extractProjectKeyFromFeatureUri, setScenarioProjectKey, setScenarioCredentialProfile } from './env';
+import {
+  extractProjectKeyFromFeatureUri,
+  resetEnvConfigLogCache,
+  setScenarioProjectKey,
+} from './env';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import chalk from "chalk";
@@ -91,6 +96,7 @@ Before(async function (this: CustomWorld, scenario) {
     extractProjectKeyFromFeatureUri(pickleUri) || extractProjectKeyFromFeatureUri(originalFeature);
   this.scenarioProjectKey = projectKey;
   setScenarioProjectKey(projectKey);
+  resetEnvConfigLogCache();
 
   const credentialTag = scenario.pickle.tags.find((tag) =>
     tag.name.toLowerCase().startsWith('credential:'),
