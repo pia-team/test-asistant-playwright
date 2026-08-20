@@ -7,7 +7,6 @@ import * as path from 'path';
 import chalk from "chalk";
 import { setDefaultTimeout } from '@cucumber/cucumber';
 import { randomUUID } from 'crypto';
-import { FlowCaptureSession } from './flow-capture';
 
 setDefaultTimeout(120 * 1000);
 
@@ -66,29 +65,10 @@ Before(async function (this: CustomWorld, scenario) {
 
   this.scenarioVars = {};
 
-  // Load execution-scoped Test Flow shared context (if present)
-  const flowContextPath = process.env.COTESTER_FLOW_CONTEXT_PATH;
-  if (flowContextPath) {
-    try {
-      const raw = await fs.readFile(flowContextPath, 'utf8');
-      const parsed = JSON.parse(raw || '{}');
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        this.scenarioVars = { ...(parsed as Record<string, string>) };
-      }
-    } catch (e: unknown) {
-      if ((e as NodeJS.ErrnoException)?.code !== 'ENOENT') {
-        console.warn('Failed to load flow context:', e);
-      }
-    }
-  }
-
   // CRITICAL: Extract and store feature name for multi-feature parallel execution
   // This allows us to include feature context in every step log
-  const pickleUri = scenario.pickle?.uri || '';
-  const originalFeature = process.env.COTESTER_FLOW_ORIGINAL_FEATURE || '';
-  const featureUri = originalFeature || pickleUri;
-  const projectKey =
-    extractProjectKeyFromFeatureUri(pickleUri) || extractProjectKeyFromFeatureUri(originalFeature);
+  const featureUri = scenario.pickle?.uri || '';
+  const projectKey = extractProjectKeyFromFeatureUri(featureUri);
   this.scenarioProjectKey = projectKey;
   setScenarioProjectKey(projectKey);
 
@@ -119,11 +99,6 @@ Before(async function (this: CustomWorld, scenario) {
   }
 
   await this.openBrowser();
-
-  if (process.env.COTESTER_FLOW_CAPTURE === '1' && this.page) {
-    this.flowCapture = new FlowCaptureSession();
-    this.flowCapture.attach(this.page);
-  }
 });
 
 // CRITICAL: Include feature name in EVERY step log for parallel execution support
@@ -161,16 +136,6 @@ AfterStep(async function (this: ICustomWorld, { result, pickleStep, pickle }) {
 After(async function (this: ICustomWorld, scenario) {
   const status = scenario.result?.status;
   const screenshotMode = getScreenshotMode();
-
-  if (this.flowCapture && this.page) {
-    try {
-      await this.flowCapture.flushToContextAndArtifact();
-      this.flowCapture.detach(this.page);
-    } catch (e) {
-      console.warn('Flow capture flush failed:', e);
-    }
-    this.flowCapture = undefined;
-  }
 
   this.scenarioProjectKey = undefined;
   setScenarioProjectKey(undefined);
