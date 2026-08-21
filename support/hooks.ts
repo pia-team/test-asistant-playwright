@@ -1,11 +1,11 @@
 import { Before, After, Status, AfterStep, BeforeStep } from '@cucumber/cucumber';
 import type { ICustomWorld } from './world';
 import { CustomWorld } from './world';
-import { extractProjectKeyFromFeatureUri, setScenarioProjectKey, setScenarioCredentialProfile } from './env';
 import {
   extractProjectKeyFromFeatureUri,
-  resetEnvConfigLogCache,
   setScenarioProjectKey,
+  setScenarioCredentialProfile,
+  resetEnvConfigLogCache,
 } from './env';
 import * as fs from 'fs/promises';
 import * as path from 'path';
