@@ -82,7 +82,7 @@ export function extractProjectKeyFromFeatureUri(featureUri: string): string | un
     return undefined;
   }
 
-  const key = match[1].trim();
+  const key = match[1]?.trim();
   if (!key || EXCLUDED_PROJECT_FOLDERS.has(key.toLowerCase())) {
     return undefined;
   }
@@ -90,20 +90,6 @@ export function extractProjectKeyFromFeatureUri(featureUri: string): string | un
   return key;
 }
 
-function resolveConfigFilePath(projectKey: string | undefined, tier: string, profileSlug?: string): string | null {
-  const projectsDir = path.resolve(__dirname, '../config/projects');
-  const slug =
-    profileSlug ??
-    getScenarioCredentialProfile() ??
-    process.env.UI_CREDENTIAL_PROFILE ??
-    undefined;
-
-  if (projectKey && slug) {
-    const slugPath = path.join(projectsDir, `${projectKey}.${tier}.${slug}.json`);
-    if (fs.existsSync(slugPath)) {
-      return slugPath;
-    }
-  }
 function normalizeTier(tier?: string): string {
   const normalized = (tier ?? 'dev').trim().toLowerCase();
   return normalized || 'dev';
@@ -185,6 +171,19 @@ function buildCandidatePaths(projectKey: string | undefined, tier: string): {
 } {
   const candidates: Array<{ filePath: string; source: EnvConfigSource }> = [];
   const attemptedPaths: string[] = [];
+
+  const slug =
+    getScenarioCredentialProfile() ??
+    process.env.UI_CREDENTIAL_PROFILE ??
+    undefined;
+
+  if (projectKey && slug) {
+    const slugPath = path.join(PROJECTS_CONFIG_DIR, `${projectKey}.${tier}.${slug}.json`);
+    attemptedPaths.push(slugPath);
+    if (fs.existsSync(slugPath)) {
+      candidates.push({ filePath: slugPath, source: 'project-tier' });
+    }
+  }
 
   if (projectKey) {
     const tieredPath = path.join(PROJECTS_CONFIG_DIR, `${projectKey}.${tier}.json`);
