@@ -10,7 +10,8 @@
     "wip:test:staging": "cross-env TEST_ENV=staging cucumber-js --require cucumber.js --tags '@wip'",
     "test:default": "cucumber-js --require cucumber.js --profile default --retry 2",
     "test:rerun": "cucumber-js --require cucumber.js --profile rerun --retry 2",
-    "test:run": "cross-env TEST_ENV=dev cucumber-js --require cucumber.js"
+    "test:run": "cross-env TEST_ENV=dev cucumber-js --require cucumber.js",
+    "test": "node --require ts-node/register/transpile-only --test tests/self-heal.test.ts"
   },
   "dependencies": {
     "playwright": "^1.48.0"

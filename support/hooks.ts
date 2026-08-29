@@ -13,6 +13,7 @@ import chalk from "chalk";
 import { setDefaultTimeout } from '@cucumber/cucumber';
 import { randomUUID } from 'crypto';
 import { FlowCaptureSession } from './flow-capture';
+import { clearLocatorOverrides } from './locator-registry';
 
 setDefaultTimeout(120 * 1000);
 
@@ -70,6 +71,7 @@ Before(async function (this: CustomWorld, scenario) {
   await ensureScreenshotsDir();
 
   this.scenarioVars = {};
+  clearLocatorOverrides();
 
   // Load execution-scoped Test Flow shared context (if present)
   const flowContextPath = process.env.COTESTER_FLOW_CONTEXT_PATH;
@@ -98,7 +100,7 @@ Before(async function (this: CustomWorld, scenario) {
   setScenarioProjectKey(projectKey);
   resetEnvConfigLogCache();
 
-  const credentialTag = scenario.pickle.tags.find((tag) =>
+  const credentialTag = scenario.pickle?.tags?.find((tag) =>
     tag.name.toLowerCase().startsWith('credential:'),
   );
   if (credentialTag) {
@@ -133,8 +135,13 @@ Before(async function (this: CustomWorld, scenario) {
 });
 
 // CRITICAL: Include feature name in EVERY step log for parallel execution support
-BeforeStep(function (this: ICustomWorld, { pickleStep }) {
+BeforeStep(function (this: ICustomWorld, { pickleStep, pickle }) {
   const featureName = this.currentFeatureName || 'unknown';
+  if (this.healingContext) {
+    this.healingContext.currentStepKey = pickleStep.id;
+    this.healingContext.currentStepText = pickleStep.text ?? '';
+    this.healingContext.currentScenarioName = pickle.name ?? '';
+  }
   // Format: ➡ STEP START [feature-name]: step text
   console.error(chalk.yellow(`➡ STEP START [${featureName}]: ${pickleStep.text}`));
 });
@@ -151,7 +158,8 @@ AfterStep(async function (this: ICustomWorld, { result, pickleStep, pickle }) {
 
   const mode = getScreenshotMode();
   const steps = pickle?.steps ?? [];
-  const isLastStep = steps.length > 0 && steps[steps.length - 1].id === pickleStep.id;
+  const lastStep = steps.length > 0 ? steps[steps.length - 1] : undefined;
+  const isLastStep = lastStep?.id === pickleStep.id;
 
   if (!shouldTakeStepScreenshot(mode, status, isLastStep)) {
     return;
@@ -181,6 +189,8 @@ After(async function (this: ICustomWorld, scenario) {
   this.scenarioProjectKey = undefined;
   setScenarioProjectKey(undefined);
   setScenarioCredentialProfile(undefined);
+  clearLocatorOverrides();
+  this.healingContext = undefined;
 
   if (this.page && status === Status.FAILED && screenshotMode !== 'NONE') {
     try {

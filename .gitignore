@@ -6,6 +6,13 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 
+# Project-specific test assets (generated / local)
+features/
+config/
+pages/
+tests/
+.cotester-validation-*/
+
 # Reports and results
 allure-results/
 allure-reports/

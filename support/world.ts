@@ -2,6 +2,8 @@ import { setWorldConstructor, World, IWorldOptions } from '@cucumber/cucumber';
 import { Browser, BrowserContext, Page, chromium, firefox, webkit } from 'playwright';
 import type { BrowserContextOptions } from 'playwright';
 import type { IBasePage } from './pageFactory';
+import { createHealingContext, type HealingContext } from './self-heal';
+import { wrapPageForSelfHeal } from './healing-page';
 
 // Supported browsers: chromium, firefox, webkit (Safari)
 type BrowserType = 'chromium' | 'firefox' | 'webkit';
@@ -44,6 +46,8 @@ type CustomWorldState = {
   scenarioVars: Record<string, string>;
   /** Optional network capture for Test Flow bindings. */
   flowCapture?: import('./flow-capture').FlowCaptureSession;
+  /** Runtime self-heal state for the active scenario. */
+  healingContext?: HealingContext;
   openBrowser: () => Promise<void>;
   closeBrowser: () => Promise<void>;
 };
@@ -59,6 +63,7 @@ export class CustomWorld extends World implements ICustomWorld {
   scenarioProjectKey?: string;
   scenarioVars: Record<string, string> = {};
   flowCapture?: import('./flow-capture').FlowCaptureSession;
+  healingContext?: HealingContext;
 
   constructor(options: IWorldOptions) {
     super(options);
@@ -108,6 +113,10 @@ export class CustomWorld extends World implements ICustomWorld {
     this.context = await this.browser.newContext(contextOptions);
 
     this.page = await this.context.newPage();
+    this.healingContext = createHealingContext();
+    if (this.healingContext.enabled) {
+      this.page = wrapPageForSelfHeal(this.page, this.healingContext);
+    }
   }
 
   async closeBrowser() {
