@@ -14,11 +14,41 @@ import { setDefaultTimeout } from '@cucumber/cucumber';
 import { randomUUID } from 'crypto';
 import { FlowCaptureSession } from './flow-capture';
 import { clearLocatorOverrides } from './locator-registry';
+import { resetTestDataCache } from './testData';
 
-setDefaultTimeout(120 * 1000);
+function parsePositiveInt(envKey: string, fallbackMs: number): number {
+  const raw = process.env[envKey];
+  if (raw == null || raw.trim() === '') {
+    return fallbackMs;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallbackMs;
+}
+
+setDefaultTimeout(parsePositiveInt('COTESTER_STEP_TIMEOUT_MS', 120 * 1000));
 
 // Screenshots directory
 const SCREENSHOTS_DIR = 'reports/screenshots';
+
+/** Tracks cucumber-js scenario attempts (initial run + retries) per pickle id. */
+const attemptByPickleId = new Map<string, number>();
+
+function featureNameFromUri(featureUri: string): string {
+  if (!featureUri) {
+    return '';
+  }
+  if (featureUri.includes('/')) {
+    return featureUri.substring(featureUri.lastIndexOf('/') + 1).replace('.feature', '');
+  }
+  if (featureUri.includes('\\')) {
+    return featureUri.substring(featureUri.lastIndexOf('\\') + 1).replace('.feature', '');
+  }
+  return featureUri.replace('.feature', '');
+}
+
+function pickleKey(pickle: { id?: string; uri?: string } | undefined): string {
+  return pickle?.id ?? pickle?.uri ?? 'unknown';
+}
 
 type ScreenshotMode = 'ALL_STEPS' | 'FAIL_ONLY' | 'FAIL_AND_LAST_PASS' | 'NONE';
 
@@ -72,6 +102,7 @@ Before(async function (this: CustomWorld, scenario) {
 
   this.scenarioVars = {};
   clearLocatorOverrides();
+  resetTestDataCache();
 
   // Load execution-scoped Test Flow shared context (if present)
   const flowContextPath = process.env.COTESTER_FLOW_CONTEXT_PATH;
@@ -110,15 +141,17 @@ Before(async function (this: CustomWorld, scenario) {
     }
   }
 
-  const featureName = featureUri.includes('/')
-    ? featureUri.substring(featureUri.lastIndexOf('/') + 1).replace('.feature', '')
-    : featureUri.includes('\\')
-      ? featureUri.substring(featureUri.lastIndexOf('\\') + 1).replace('.feature', '')
-      : featureUri.replace('.feature', '');
+  const featureName = featureNameFromUri(featureUri);
+  const pickleId = pickleKey(scenario.pickle);
+  const attempt = (attemptByPickleId.get(pickleId) ?? 0) + 1;
+  attemptByPickleId.set(pickleId, attempt);
 
   this.currentFeatureName = featureName;
 
   if (featureName) {
+    if (attempt > 1) {
+      console.log(chalk.cyan(`⟳ RETRY ATTEMPT ${attempt}: ${featureName}`));
+    }
     console.log(chalk.magenta(`🎯 FEATURE START: ${featureName}`));
     console.log(chalk.magenta(`📁 Feature File: ${featureUri}`));
     if (projectKey) {
@@ -175,6 +208,19 @@ AfterStep(async function (this: ICustomWorld, { result, pickleStep, pickle }) {
 After(async function (this: ICustomWorld, scenario) {
   const status = scenario.result?.status;
   const screenshotMode = getScreenshotMode();
+  const featureName = this.currentFeatureName || 'unknown';
+
+  if (scenario.willBeRetried) {
+    const pickleId = pickleKey(scenario.pickle);
+    const nextAttempt = (attemptByPickleId.get(pickleId) ?? 1) + 1;
+    console.log(
+      chalk.cyan(
+        `⟳ RETRY SCHEDULED: ${featureName} yeniden denenecek (attempt ${nextAttempt})`,
+      ),
+    );
+  } else {
+    attemptByPickleId.delete(pickleKey(scenario.pickle));
+  }
 
   if (this.flowCapture && this.page) {
     try {

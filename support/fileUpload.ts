@@ -1,23 +1,16 @@
 import type { Locator, Page } from '@playwright/test';
 import path from 'path';
+import { testData } from './testData';
 
 /**
- * Resolves a project-relative document path (e.g. "/docs/example.pdf") to an absolute path.
- */
-export function resolveDocumentPath(filePath: string): string {
-  return path.resolve(process.cwd(), filePath.replace(/^\/+/, ''));
-}
-
-/**
- * Uploads a document via the browser file chooser (buttons, labels, non-input triggers).
- * Use this instead of locator.setInputFiles() on elements that are not <input type="file">.
+ * Uploads a document using a Data Center binding key.
  */
 export async function uploadDocument(
   page: Page,
   trigger: Locator,
-  filePath: string,
+  bindingKey: string,
 ): Promise<void> {
-  const resolvedPath = resolveDocumentPath(filePath);
+  const resolvedPath = await testData.getFile(bindingKey);
   const [fileChooser] = await Promise.all([
     page.waitForEvent('filechooser'),
     trigger.click({ force: true }),
@@ -32,9 +25,9 @@ export async function uploadDocument(
 export async function uploadDocumentSmart(
   page: Page,
   trigger: Locator,
-  filePath: string,
+  bindingKey: string,
 ): Promise<void> {
-  const resolvedPath = resolveDocumentPath(filePath);
+  const resolvedPath = await testData.getFile(bindingKey);
   const tagName = await trigger.evaluate((el) => el.tagName.toLowerCase()).catch(() => '');
   const inputType = await trigger.evaluate((el) => (el as HTMLInputElement).type?.toLowerCase() ?? '').catch(() => '');
 
@@ -44,5 +37,12 @@ export async function uploadDocumentSmart(
     return;
   }
 
-  await uploadDocument(page, trigger, filePath);
+  await uploadDocument(page, trigger, bindingKey);
+}
+
+/**
+ * @deprecated Use testData.getFile(bindingKey) via uploadDocument/uploadDocumentSmart.
+ */
+export function resolveDocumentPath(filePath: string): string {
+  return path.resolve(process.cwd(), filePath.replace(/^\/+/, ''));
 }

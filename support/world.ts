@@ -112,6 +112,21 @@ export class CustomWorld extends World implements ICustomWorld {
     }
     this.context = await this.browser.newContext(contextOptions);
 
+    const navRaw = process.env.COTESTER_NAVIGATION_TIMEOUT_MS;
+    if (navRaw != null && navRaw.trim() !== '') {
+      const navTimeout = Number.parseInt(navRaw, 10);
+      if (Number.isFinite(navTimeout) && navTimeout > 0) {
+        this.context.setDefaultNavigationTimeout(navTimeout);
+      }
+    }
+    const actionRaw = process.env.COTESTER_ACTION_TIMEOUT_MS;
+    if (actionRaw != null && actionRaw.trim() !== '') {
+      const actionTimeout = Number.parseInt(actionRaw, 10);
+      if (Number.isFinite(actionTimeout) && actionTimeout > 0) {
+        this.context.setDefaultTimeout(actionTimeout);
+      }
+    }
+
     this.page = await this.context.newPage();
     this.healingContext = createHealingContext();
     if (this.healingContext.enabled) {
