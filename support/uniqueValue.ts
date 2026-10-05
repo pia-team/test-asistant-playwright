@@ -1,3 +1,5 @@
+import { runtimeData } from './runtimeData';
+
 /**
  * Unique identifier values for form fields (personal number, account id, …).
  * Not for names, emails, or addresses.
@@ -6,23 +8,12 @@
  * - `#` → digit (prefers trailing digits of Date.now(), then random)
  * - `?` → uppercase letter A–Z
  * Other characters are kept as-is.
+ *
+ * Compatibility wrapper around `runtimeData.pattern`; new code should call that directly.
  */
 export function uniqueFromPattern(pattern: string): string {
   if (!pattern) {
     throw new Error('uniqueFromPattern requires a non-empty pattern');
   }
-
-  const digits = Date.now().toString();
-  let digitIndex = digits.length;
-
-  return pattern.replace(/#|\?/g, (token) => {
-    if (token === '?') {
-      return String.fromCharCode(65 + Math.floor(Math.random() * 26));
-    }
-    digitIndex -= 1;
-    if (digitIndex >= 0) {
-      return digits[digitIndex];
-    }
-    return String(Math.floor(Math.random() * 10));
-  });
+  return runtimeData.pattern(pattern, { clockDigits: true });
 }

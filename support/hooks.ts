@@ -15,6 +15,7 @@ import { randomUUID } from 'crypto';
 import { FlowCaptureSession } from './flow-capture';
 import { clearLocatorOverrides } from './locator-registry';
 import { resetTestDataCache } from './testData';
+import { runGeneratedAfter, runGeneratedBefore } from './lifecycleRegistry';
 
 function parsePositiveInt(envKey: string, fallbackMs: number): number {
   const raw = process.env[envKey];
@@ -165,6 +166,9 @@ Before(async function (this: CustomWorld, scenario) {
     this.flowCapture = new FlowCaptureSession();
     this.flowCapture.attach(this.page);
   }
+
+  // Scoped BEFORE lifecycle of migrated tests (no-op for features without a registration).
+  await runGeneratedBefore(featureUri, this);
 });
 
 // CRITICAL: Include feature name in EVERY step log for parallel execution support
@@ -222,6 +226,18 @@ After(async function (this: ICustomWorld, scenario) {
     attemptByPickleId.delete(pickleKey(scenario.pickle));
   }
 
+  // Scoped AFTER lifecycle of migrated tests: runs while the browser and project context are still open; its
+  // failure is reported after the regular cleanup below has completed.
+  let generatedAfterError: unknown;
+  try {
+    await runGeneratedAfter(
+      process.env.COTESTER_FLOW_ORIGINAL_FEATURE || scenario.pickle?.uri || '',
+      this,
+    );
+  } catch (e) {
+    generatedAfterError = e;
+  }
+
   if (this.flowCapture && this.page) {
     try {
       await this.flowCapture.flushToContextAndArtifact();
@@ -255,12 +271,19 @@ After(async function (this: ICustomWorld, scenario) {
   }
 
   // Video attachment for Allure (only on failure)
-  if (status !== Status.FAILED) return;
+  if (status === Status.FAILED) {
+    await attachFailureVideo(this);
+  }
 
-  // For failure, we try to attach the video to Allure
-  // The video path is logged by closeBrowser, but we can still get it here for attachment
+  if (generatedAfterError) {
+    throw generatedAfterError;
+  }
+});
+
+// The video path is logged by closeBrowser, but we can still get it here for attachment
+async function attachFailureVideo(world: ICustomWorld): Promise<void> {
   try {
-    const video = this.page?.video();
+    const video = world.page?.video();
     if (!video) return;
 
     const videoPath = await video.path();
@@ -277,9 +300,9 @@ After(async function (this: ICustomWorld, scenario) {
     }
 
     if (videoBuffer) {
-      await this.attach(videoBuffer, 'video/webm');
+      await world.attach(videoBuffer, 'video/webm');
     }
   } catch (e) {
     console.warn(`⚠️ Video attachment failed: ${e}`);
   }
-});
+}
