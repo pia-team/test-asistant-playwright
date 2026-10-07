@@ -13,6 +13,7 @@ import chalk from "chalk";
 import { setDefaultTimeout } from '@cucumber/cucumber';
 import { randomUUID } from 'crypto';
 import { FlowCaptureSession } from './flow-capture';
+import { publicFlowValues } from './flowContext';
 import { clearLocatorOverrides } from './locator-registry';
 import { resetTestDataCache } from './testData';
 import { runGeneratedAfter, runGeneratedBefore } from './lifecycleRegistry';
@@ -105,19 +106,12 @@ Before(async function (this: CustomWorld, scenario) {
   clearLocatorOverrides();
   resetTestDataCache();
 
-  // Load execution-scoped Test Flow shared context (if present)
-  const flowContextPath = process.env.COTESTER_FLOW_CONTEXT_PATH;
-  if (flowContextPath) {
+  // Load execution-scoped Test Flow shared context (if present); sensitive values are never preloaded
+  if (process.env.COTESTER_FLOW_CONTEXT_PATH) {
     try {
-      const raw = await fs.readFile(flowContextPath, 'utf8');
-      const parsed = JSON.parse(raw || '{}');
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        this.scenarioVars = { ...(parsed as Record<string, string>) };
-      }
-    } catch (e: unknown) {
-      if ((e as NodeJS.ErrnoException)?.code !== 'ENOENT') {
-        console.warn('Failed to load flow context:', e);
-      }
+      this.scenarioVars = { ...publicFlowValues() };
+    } catch {
+      console.warn('Failed to load flow context');
     }
   }
 

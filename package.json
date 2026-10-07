@@ -14,7 +14,8 @@
     "test": "node --require ts-node/register/transpile-only --test tests/self-heal.test.ts"
   },
   "dependencies": {
-    "playwright": "^1.48.0"
+    "playwright": "^1.48.0",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^12.2.0",
