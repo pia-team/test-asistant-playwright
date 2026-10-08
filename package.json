@@ -11,7 +11,8 @@
     "test:default": "cucumber-js --require cucumber.js --profile default --retry 2",
     "test:rerun": "cucumber-js --require cucumber.js --profile rerun --retry 2",
     "test:run": "cross-env TEST_ENV=dev cucumber-js --require cucumber.js",
-    "test": "node --require ts-node/register/transpile-only --test tests/self-heal.test.ts"
+    "test": "node --require ts-node/register/transpile-only --test tests/*.test.ts",
+    "test:e2e:browser": "node --require ts-node/register/transpile-only --test tests/e2e/browser-smoke.test.ts"
   },
   "dependencies": {
     "playwright": "^1.48.0",

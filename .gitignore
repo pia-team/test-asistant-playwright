@@ -6,14 +6,32 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 
-# Project-specific test assets (generated / local)
-features/
+# Secrets / runtime config (never commit credentials)
+.env
+.env.*
+!.env.example
+cotester.env
 config/
-pages/
-tests/
+config/projects/
+!.gitkeep
+
+# Generated / local validation scratch
 .cotester-validation-*/
 
 # Reports and results
 allure-results/
 allure-reports/
 reports/
+screenshots/
+videos/
+test-results/
+**/reports/
+**/screenshots/
+**/videos/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo

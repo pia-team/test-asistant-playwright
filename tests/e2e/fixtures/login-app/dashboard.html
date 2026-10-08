@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>E2E Dashboard</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 32rem;
+        margin: 3rem auto;
+        padding: 0 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 data-testid="dashboard-heading">Dashboard</h1>
+    <p>Welcome, <span id="welcome-user" data-testid="welcome-user"></span>.</p>
+    <script>
+      if (sessionStorage.getItem('e2e-logged-in') !== '1') {
+        window.location.href = 'index.html';
+      } else {
+        document.getElementById('welcome-user').textContent =
+          sessionStorage.getItem('e2e-username') || 'user';
+      }
+    </script>
+  </body>
+</html>

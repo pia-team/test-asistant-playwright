@@ -57,6 +57,8 @@ Example:
 cross-env TEST_ENV=staging npm run test:run
 ```
 
+**CoTester FAZ 3 (job-scoped):** When the backend runs tests, it sets `COTESTER_WEB_BASE_URL` / `BASE_LOGIN_URL` and `COTESTER_WEB_USERNAME` / `COTESTER_WEB_PASSWORD` (or `UI_*`). These override `config/projects/*.json` passwords. Fallback order for files: `@credential:` tag → `UI_CREDENTIAL_PROFILE` → tiered project JSON. See `cotester.env.example` for placeholders (no real secrets).
+
 ## 📊 Reporting
 
 We use Allure for generating detailed test reports.

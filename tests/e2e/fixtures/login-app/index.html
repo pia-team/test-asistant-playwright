@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>E2E Login</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 24rem;
+        margin: 3rem auto;
+        padding: 0 1rem;
+      }
+      label {
+        display: block;
+        margin-top: 0.75rem;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.4rem;
+      }
+      button {
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+      }
+      #login-error {
+        color: #b00020;
+        margin-top: 0.75rem;
+        display: none;
+      }
+      #login-error.visible {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sign in</h1>
+    <form id="login-form" novalidate>
+      <label for="username">Username</label>
+      <input id="username" data-testid="username" name="username" autocomplete="username" required />
+
+      <label for="password">Password</label>
+      <input
+        id="password"
+        data-testid="password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        required
+      />
+
+      <button type="submit" data-testid="login-submit">Log in</button>
+    </form>
+    <p id="login-error" data-testid="login-error" role="alert">Invalid username or password.</p>
+
+    <script src="auth.js"></script>
+    <script>
+      document.getElementById('login-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+        var errorEl = document.getElementById('login-error');
+        errorEl.classList.remove('visible');
+        var username = document.getElementById('username').value.trim();
+        var password = document.getElementById('password').value;
+        if (window.E2E_AUTH.validate(username, password)) {
+          sessionStorage.setItem('e2e-logged-in', '1');
+          sessionStorage.setItem('e2e-username', username);
+          window.location.href = 'dashboard.html';
+          return;
+        }
+        errorEl.classList.add('visible');
+      });
+    </script>
+  </body>
+</html>

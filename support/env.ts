@@ -105,6 +105,40 @@ function isStrictProjectConfigEnabled(): boolean {
   return raw === '1' || raw === 'true' || raw === 'yes';
 }
 
+function firstNonBlank(...values: (string | undefined)[]): string | undefined {
+  for (const v of values) {
+    if (v != null && String(v).trim() !== '') {
+      return String(v).trim();
+    }
+  }
+  return undefined;
+}
+
+function runtimeWebOverrides(): Partial<EnvConfig> {
+  return {
+    baseLoginUrl: firstNonBlank(process.env.COTESTER_WEB_BASE_URL, process.env.BASE_LOGIN_URL),
+    username: firstNonBlank(process.env.COTESTER_WEB_USERNAME, process.env.UI_USERNAME),
+    password:
+      process.env.COTESTER_WEB_PASSWORD !== undefined
+        ? process.env.COTESTER_WEB_PASSWORD
+        : process.env.UI_PASSWORD,
+  };
+}
+
+function hasRuntimePassword(): boolean {
+  const rt = runtimeWebOverrides();
+  return !!(rt.password != null && String(rt.password) !== '');
+}
+
+function applyRuntimeCredentialOverlay(config: EnvConfig): EnvConfig {
+  const rt = runtimeWebOverrides();
+  return {
+    baseLoginUrl: rt.baseLoginUrl || config.baseLoginUrl,
+    username: rt.username || config.username,
+    password: rt.password != null && rt.password !== '' ? rt.password : config.password,
+  };
+}
+
 function maskSecret(value: string): string {
   if (!value) {
     return '(empty)';
@@ -142,10 +176,16 @@ function parseAndValidateEnvConfig(raw: string, filePath: string): EnvConfig {
   const username = typeof record.username === 'string' ? record.username.trim() : '';
   const password = typeof record.password === 'string' ? record.password : '';
 
+  const rt = runtimeWebOverrides();
+  const effectiveBaseLoginUrl = baseLoginUrl || rt.baseLoginUrl || '';
+  const effectiveUsername = username || rt.username || '';
+  const effectivePassword =
+    password || (rt.password != null && rt.password !== '' ? rt.password : '');
+
   const missing: string[] = [];
-  if (!baseLoginUrl) missing.push('baseLoginUrl');
-  if (!username) missing.push('username');
-  if (!password) missing.push('password');
+  if (!effectiveBaseLoginUrl) missing.push('baseLoginUrl');
+  if (!effectiveUsername) missing.push('username');
+  if (!effectivePassword && !hasRuntimePassword()) missing.push('password');
 
   if (missing.length > 0) {
     throw new Error(
@@ -155,14 +195,18 @@ function parseAndValidateEnvConfig(raw: string, filePath: string): EnvConfig {
 
   try {
     // eslint-disable-next-line no-new
-    new URL(baseLoginUrl);
+    new URL(effectiveBaseLoginUrl);
   } catch {
     throw new Error(
-      `Env config '${toDisplayPath(filePath)}' has invalid baseLoginUrl: '${baseLoginUrl}'`,
+      `Env config '${toDisplayPath(filePath)}' has invalid baseLoginUrl: '${effectiveBaseLoginUrl}'`,
     );
   }
 
-  return { baseLoginUrl, username, password };
+  return applyRuntimeCredentialOverlay({
+    baseLoginUrl: effectiveBaseLoginUrl,
+    username: effectiveUsername,
+    password: effectivePassword,
+  });
 }
 
 function buildCandidatePaths(projectKey: string | undefined, tier: string): {
@@ -244,6 +288,17 @@ function logEnvResolution(resolved: ResolvedEnvConfig): void {
   const userLine = chalk.cyan(
     `[ENV]   username: ${resolved.config.username} | password: ${maskSecret(resolved.config.password)}`,
   );
+  const runtimeUrl = firstNonBlank(process.env.COTESTER_WEB_BASE_URL, process.env.BASE_LOGIN_URL);
+  const runtimeUser = firstNonBlank(process.env.COTESTER_WEB_USERNAME, process.env.UI_USERNAME);
+  if (runtimeUrl || runtimeUser) {
+    console.log(
+      chalk.cyan(
+        `[ENV]   runtime overlay: ${runtimeUrl ? 'baseLoginUrl from CoTester env' : ''}${
+          runtimeUrl && runtimeUser ? ', ' : ''
+        }${runtimeUser ? 'credentials from CoTester env' : ''}`,
+      ),
+    );
+  }
 
   console.log(header);
   console.log(fileLine);

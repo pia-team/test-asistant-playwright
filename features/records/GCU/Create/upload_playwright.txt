@@ -1,0 +1,22 @@
+import { test, expect } from '@playwright/test';
+
+test('test', async ({ page }) => {
+  await page.getByRole('textbox', { name: 'Username or email' }).click();
+
+  await page.getByRole('textbox', { name: 'Username or email' }).fill('nora');
+
+  await page.getByRole('textbox', { name: 'Password' }).click();
+
+  await page.getByRole('textbox', { name: 'Password' }).fill('1234');
+
+  await page.getByRole('button', { name: 'Sign In' }).click();
+  await page.getByRole('link', { name: 'Create Partner' }).click();
+  await page.getByTestId('organizationSearch').click();
+  await page.getByTestId('organizationSearch').fill('ANGULAr');
+  await page.getByRole('button').filter({ hasText: 'search' }).click();
+  await page.getByRole('option', { name: 'ANGULARYIRMI ORGANIZATION' }).click();
+  await page.getByTestId('next-button').click();
+  await page.getByTestId('add-document-button').click();
+  await page.getByTestId('add-document-button').setInputFiles('FORM.pdf');
+
+});
