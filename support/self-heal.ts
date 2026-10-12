@@ -134,9 +134,13 @@ export async function attemptSelfHeal(
     return { retry: false };
   }
 
+  const runToken = process.env.COTESTER_SELF_HEAL_TOKEN || '';
   const matchResponse = await fetch(`${ctx.apiUrl}/api/self-heal/match`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(runToken ? { 'X-CoTester-Self-Heal-Token': runToken } : {}),
+    },
     body: JSON.stringify({
       runJobId: ctx.runJobId,
       featurePath: ctx.featurePath,
