@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>CSS Icon Link Fixture</title>
+  <style>
+    .contact-icon::before {
+      content: "\f0e0";
+    }
+    .contact-icon-hidden::before {
+      content: "\f0e0";
+    }
+  </style>
+</head>
+<body>
+  <nav aria-label="Main">
+    <a href="/contact_us" id="contact-a">
+      <i class="contact-icon"></i>
+      Contact us
+    </a>
+    <a href="/about" id="about-link">
+      <i class="contact-icon-hidden" aria-hidden="true"></i>
+      About
+    </a>
+  </nav>
+  <p role="status" id="result">Idle</p>
+</body>
+</html>

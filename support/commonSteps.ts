@@ -18,17 +18,20 @@ import { PageFactory, IBasePage } from './pageFactory';
  * CRITICAL: Stores page instance in world.pageInstance to avoid race conditions.
  */
 async function getPageForCurrentFeature(world: ICustomWorld): Promise<IBasePage> {
-    // Get current feature name from world context (set in hooks.ts)
-    const featureName = (world as any).currentFeatureName || '';
+    // Ensure popup/tab switches from the previous step have settled.
+    await world.activePageManager?.settle();
 
-    // Check if we already have a page instance for this scenario
-    if ((world as any).pageInstance) {
-        return (world as any).pageInstance;
+    // Get current feature name from world context (set in hooks.ts)
+    const featureName = world.currentFeatureName || '';
+
+    // Reuse only if still bound to the current active page (cleared on tab switch).
+    if (world.pageInstance) {
+        return world.pageInstance;
     }
 
-    // Create new page instance for this scenario
+    // Create new page instance for this scenario against the current active page
     const pageInstance = await PageFactory.getPage(featureName, world.page!);
-    (world as any).pageInstance = pageInstance;
+    world.pageInstance = pageInstance;
     console.log(`[CommonSteps] Using Page Object for feature: ${featureName}`);
 
     return pageInstance;

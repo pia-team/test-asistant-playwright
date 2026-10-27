@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Popup One</title>
+</head>
+<body>
+  <h1 data-testid="popup-heading">Popup One</h1>
+  <p data-testid="popup-marker">popup-one-content</p>
+  <button data-testid="close-self" type="button">Close</button>
+  <script>
+    document.querySelector('[data-testid="close-self"]').addEventListener('click', () => window.close());
+  </script>
+</body>
+</html>

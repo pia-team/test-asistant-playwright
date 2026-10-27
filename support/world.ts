@@ -4,6 +4,7 @@ import type { BrowserContextOptions } from 'playwright';
 import type { IBasePage } from './pageFactory';
 import { createHealingContext, type HealingContext } from './self-heal';
 import { wrapPageForSelfHeal } from './healing-page';
+import { ActivePageManager } from './active-page';
 
 // Supported browsers: chromium, firefox, webkit (Safari)
 type BrowserType = 'chromium' | 'firefox' | 'webkit';
@@ -33,7 +34,11 @@ type CustomWorldState = {
   browser?: Browser;
   context?: BrowserContext;
   page?: Page;
-  /** Per-scenario page object instance (not shared globally). */
+  /** Unwrapped Playwright page currently bound via applyActivePage (for identity checks). */
+  activeRawPage?: Page;
+  /** Scenario-scoped popup/tab active-page tracker (not a global singleton). */
+  activePageManager?: ActivePageManager;
+  /** Per-scenario page object instance (not shared globally). Cleared on active page change. */
   pageInstance?: IBasePage;
   /** Set in Before hook from the running feature path; used in step logging. */
   currentFeatureName?: string;
@@ -48,8 +53,15 @@ type CustomWorldState = {
   flowCapture?: import('./flow-capture').FlowCaptureSession;
   /** Runtime self-heal state for the active scenario. */
   healingContext?: HealingContext;
+  /**
+   * Video handle captured before context close (page refs are cleared on teardown).
+   * Used only for optional failure attachment — never throws if missing.
+   */
+  pendingVideo?: { path: () => Promise<string> };
   openBrowser: () => Promise<void>;
   closeBrowser: () => Promise<void>;
+  /** Apply raw Playwright page as world.page (heal wrap + invalidate PO cache). */
+  applyActivePage: (rawPage: Page) => void;
 };
 
 export type ICustomWorld = World & CustomWorldState;
@@ -58,15 +70,41 @@ export class CustomWorld extends World implements ICustomWorld {
   browser?: Browser;
   context?: BrowserContext;
   page?: Page;
+  activeRawPage?: Page;
+  activePageManager?: ActivePageManager;
   pageInstance?: IBasePage;
   currentFeatureName?: string;
   scenarioProjectKey?: string;
   scenarioVars: Record<string, string> = {};
   flowCapture?: import('./flow-capture').FlowCaptureSession;
   healingContext?: HealingContext;
+  pendingVideo?: { path: () => Promise<string> };
 
   constructor(options: IWorldOptions) {
     super(options);
+  }
+
+  /**
+   * Bind the scenario's active Playwright page for steps/screenshots.
+   * Invalidates cached page objects so they are not stuck on a closed/previous tab.
+   */
+  applyActivePage(rawPage: Page) {
+    if (this.activeRawPage === rawPage && this.page && !this.page.isClosed()) {
+      if (this.flowCapture) {
+        this.flowCapture.attach(rawPage);
+      }
+      return;
+    }
+    this.pageInstance = undefined;
+    this.activeRawPage = rawPage;
+    if (this.healingContext?.enabled) {
+      this.page = wrapPageForSelfHeal(rawPage, this.healingContext);
+    } else {
+      this.page = rawPage;
+    }
+    if (this.flowCapture) {
+      this.flowCapture.attach(rawPage);
+    }
   }
 
   private getBrowserType(): BrowserType {
@@ -104,6 +142,11 @@ export class CustomWorld extends World implements ICustomWorld {
     const contextOptions: BrowserContextOptions = {
       viewport: { width: 1920, height: 1080 },
     };
+    // Snapshot SLICE-G: path only — never log file contents
+    const storageStatePath = process.env.COTESTER_SNAPSHOT_STORAGE_STATE_PATH;
+    if (storageStatePath && storageStatePath.trim()) {
+      contextOptions.storageState = storageStatePath.trim();
+    }
     if (isVideoRecordingEnabled()) {
       contextOptions.recordVideo = {
         dir: 'reports/videos/',
@@ -127,21 +170,51 @@ export class CustomWorld extends World implements ICustomWorld {
       }
     }
 
-    this.page = await this.context.newPage();
+    const rawPage = await this.context.newPage();
     this.healingContext = createHealingContext();
-    if (this.healingContext.enabled) {
-      this.page = wrapPageForSelfHeal(this.page, this.healingContext);
-    }
+    this.activePageManager = new ActivePageManager(this.context, rawPage, {
+      onActivePageChanged: (page) => {
+        this.applyActivePage(page);
+      },
+    });
+    this.applyActivePage(rawPage);
   }
 
   async closeBrowser() {
-    const video = this.page?.video();
     const featureName = this.currentFeatureName || 'unknown';
 
-    // Close everything first to allow the video to be finalized
-    await this.page?.close();
-    await this.context?.close();
-    await this.browser?.close();
+    try {
+      await this.activePageManager?.settle();
+    } catch {
+      // ignore settle errors during teardown
+    }
+
+    // Prefer active (or last open) page for video; fall back to world.page.
+    const videoPage =
+      this.activePageManager?.getActivePage() ??
+      (this.page && !this.page.isClosed() ? this.page : undefined);
+    const video = videoPage?.video();
+    this.pendingVideo = video ?? undefined;
+
+    this.activePageManager?.dispose();
+    this.activePageManager = undefined;
+    this.pageInstance = undefined;
+
+    // Close context (all tabs) after disposing listeners — do not leave closed page as active.
+    try {
+      await this.context?.close();
+    } catch (e) {
+      console.error(`❌ Context close error: ${e}`);
+    }
+    try {
+      await this.browser?.close();
+    } catch (e) {
+      console.error(`❌ Browser close error: ${e}`);
+    }
+    this.page = undefined;
+    this.activeRawPage = undefined;
+    this.context = undefined;
+    this.browser = undefined;
 
     // Now get the path - Playwright guarantees it's ready after context close
     if (video) {

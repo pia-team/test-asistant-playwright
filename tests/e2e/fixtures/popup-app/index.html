@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Popup Main</title>
+</head>
+<body>
+  <h1 data-testid="main-heading">Main Tab</h1>
+  <a data-testid="open-popup" href="popup.html" target="_blank" rel="noopener">Open popup</a>
+  <a data-testid="open-popup-2" href="popup2.html" target="_blank" rel="noopener">Open second popup</a>
+  <button data-testid="open-window" type="button">Open via window.open</button>
+  <script>
+    document.querySelector('[data-testid="open-window"]').addEventListener('click', () => {
+      window.open('popup.html', '_blank', 'noopener');
+    });
+  </script>
+</body>
+</html>

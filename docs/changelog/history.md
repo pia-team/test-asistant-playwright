@@ -1,0 +1,74 @@
+# Geçmiş geliştirme arşivi
+
+Commit başlıkları kanıttır; yayımlanmış sürüm veya doğrulanmış özellik beyanı değildir.
+Eski minor/patch sürümleri tahmin edilmez. Merge commitler çift sayımı azaltmak için alınmaz.
+
+- `e1cb8f87668d1a003ddb20d45eec76ab470e9a6c` · 2025-12-04T16:55:59+03:00 · first project creation
+- `ab20f2ff2284d26d8ba38081fc67e4f71fb29077` · 2025-12-04T19:12:10+03:00 · feature: added test run screen
+- `89c6e8a3a2544c703957ff4afaa11ae07fb789f2` · 2025-12-05T15:42:52+03:00 · fix: added console.log
+- `8d8c201274a5e04d99cfce833d2dd8e704ef9247` · 2025-12-08T14:46:05+03:00 · chore: Ignore Allure and general report directories and update dependency lockfile.
+- `f1ac81876a603d625240b5c5c18e8720455682a8` · 2025-12-09T16:00:38+03:00 · fix: video
+- `b4086684185ae02360493aebc4c3e26fd2ee308b` · 2025-12-10T12:23:03+03:00 · fix: video
+- `a5d5fa232838f165cef2ea10dd1a692ab9fa5fc9` · 2025-12-11T12:50:41+03:00 · .
+- `726f9ba69d0e951ddfcbd310728159757ebb165e` · 2025-12-11T19:36:27+03:00 · new fetaure added
+- `1335a59f58f2787b39ad24eb01b596c3f88dc553` · 2025-12-12T10:36:00+03:00 · last changes
+- `31a5473fa82844d9f23d47de0b5af6adf2b159b2` · 2025-12-12T13:38:31+03:00 · little changes
+- `2c19900a0b51f4bc0391034e039437e82f59e485` · 2025-12-12T15:31:31+03:00 · .
+- `c00ceaa7e727a0cb733f47f9c0b418cbcdefbe7a` · 2025-12-16T16:36:53+03:00 · Update submodule references for backend and frontend components
+- `f30fa5914c2462abfae3008901368ac720eca2de` · 2025-12-18T17:32:27+03:00 · Update submodule references for playwright, backend and frontend components
+- `38f665ebadfbc078afe4415414ee3ca1d9826ff3` · 2025-12-18T22:07:16+03:00 · Update submodule references for test-assistant components
+- `bb8dce80af7e10686a3fc0b581329f74932d7c7a` · 2025-12-26T14:59:09+03:00 · chore: enable Git LFS for media files
+- `19462399813601c93cc790aaabf35ebe4bb20859` · 2025-12-26T15:59:39+03:00 · Update .gitignore
+- `8137e286d5cb4155a0209791ec4a1664394405f6` · 2025-12-26T17:37:22+03:00 · Create allure-reports
+- `bdf7596fd9c44011db28de45df237a9e65cbd813` · 2025-12-26T17:48:33+03:00 · Update playwright.yml
+- `a83d3bf05db72d1c4da4ccc6188c11b9812dc548` · 2025-12-26T17:49:54+03:00 · Update package.json
+- `309422e3da3f7a1407650c6a388a64291d42aab5` · 2025-12-26T17:59:23+03:00 · Update .gitignore
+- `5fd4c7987eb5d2b9469acb23a01f9be0e2ff9d90` · 2025-12-26T18:04:37+03:00 · Update package-lock.json
+- `69811d638f5c8f6e30ad973e2bdef27bf899afa1` · 2025-12-26T18:11:16+03:00 · Update package-lock.json
+- `9a8007d5c8b84d62a6ff38e877b7142fda3725b9` · 2025-12-26T18:17:11+03:00 · Update playwright.yml
+- `ad91e92bc4602d797f0c7fb19b3f01e2b0f0c69c` · 2025-12-26T18:21:21+03:00 · Delete features/customerSearch directory
+- `d6cf98cd51ef6275405ef5f262012401e10d7db5` · 2025-12-26T18:21:30+03:00 · Delete features/dcmuiv2Flow directory
+- `997a754c8465634957183254a36efe0c7cc398ec` · 2025-12-26T18:21:37+03:00 · Delete features/login directory
+- `9b3d04262379a9c385fa6b1d5821c8f0acfd1a40` · 2025-12-26T18:21:47+03:00 · Delete features/steps directory
+- `7c1c5ef043e4ab70a0fb1a35f05a6ee826e9ff67` · 2025-12-26T18:21:56+03:00 · Delete pages/CustomerManagementPage directory
+- `014eef90bc3adeb5c1b00806c54942be8eb5381a` · 2025-12-26T18:22:03+03:00 · Delete pages/Dcmuiv2Page directory
+- `b1c9888453354e6a18d5d54d71e2d11a873c45f5` · 2025-12-26T18:22:10+03:00 · Delete pages/customerSearchPage directory
+- `16a76f0225ca1f42c7fa99f58ac62526878ec186` · 2025-12-26T18:22:17+03:00 · Delete pages/dcmuiv2FlowPage directory
+- `3228881f50df4dd53a7cb117997ff5fd683c14cd` · 2025-12-26T18:22:24+03:00 · Delete pages/logInPage directory
+- `49d4adc4b398e480df6cf2c30e6b707e31cda834` · 2025-12-26T18:23:21+03:00 · Delete allure-reports
+- `5ad4703c5b848227a73b219b5921934fc5862940` · 2025-12-26T18:23:35+03:00 · Delete .idea directory
+- `50c914ddb3787923a591d0ed1661e623f1116c9c` · 2025-12-29T11:17:50+03:00 · Update playwright.yml
+- `409808123eb11bdc3ebd785c51c08691f46a8aba` · 2025-12-29T11:18:50+03:00 · Update hooks.ts
+- `f36342e0c29b64d6036a1178e5b5827df628b8e5` · 2025-12-30T18:40:04+03:00 · Update cucumber.js
+- `0a62ddc5dfd703839d346ebb097a1eb3e6a03a31` · 2026-01-05T10:08:09+03:00 · feat: Add `dev.json` configuration and dynamically load Cucumber step definitions in `cucumber.js`.
+- `e2b3843d5078ec1f7d1342f5da527170c04a8ffe` · 2026-01-14T12:25:17+03:00 · feat: add feature context to step logs for better log routing
+- `33f557739c69a48412f6ff88ba1891fac5ec12a9` · 2026-01-14T12:32:28+03:00 · chore: cleanup deleted test artifacts and removed page file
+- `8251c5a41e6e945352665d4731e6348ce25e993e` · 2026-01-14T14:10:44+03:00 · chore: add new feature files and test artifacts
+- `8b95aeef34b383c0e929e82c54108722e627aea9` · 2026-01-14T14:16:06+03:00 · Delete features directory
+- `5c190dd16fd2fb64fff36e3435455b2383574910` · 2026-01-14T14:16:23+03:00 · Delete pages/dcmv2 directory
+- `9b11d47f7c95874db9380f69c6b252e425ae4ea6` · 2026-01-14T14:16:52+03:00 · Delete reports directory
+- `7f63a5c09d4ee549b23342be5f1530eb65d5d240` · 2026-01-14T14:17:04+03:00 · Delete allure-results directory
+- `50ce3246b62fd285048e8677c51c309ee2a17547` · 2026-01-15T14:08:42+03:00 · feat: Implement Playwright-Cucumber integration with browser management, enhanced logging, and development environment configuration.
+- `ffdcfe44706bacc053e21698460b8d1a2ab60b88` · 2026-01-16T15:34:08+03:00 · docs: add example PDF
+- `7c6b4ef1bc13cefbafb175f811fb670118218969` · 2026-01-20T14:29:08+03:00 · feat: Add Playwright/Cucumber tests for DCM address editing and update test runner configuration.
+- `2d061348d27a5909bdbe6b943809f088449d1c5b` · 2026-01-21T12:38:09+03:00 · feat: Add Playwright worker configuration via environment variable and include config file in tsconfig.
+- `c8f178b820c37796737bab1e64b32a48245f8450` · 2026-01-22T14:33:22+03:00 · feat: add Playwright CustomWorld for Cucumber with browser management, video recording, and configurable browser types.
+- `de349b3c4a6b17ef6a208530fc28c26eb7798f82` · 2026-01-27T15:40:28+03:00 · feat: Implement core Playwright-Cucumber test framework with common steps, page factory, and custom world definition.
+- `f190574e314d21871854cda24e346323350ffb9c` · 2026-01-27T18:13:03+03:00 · .
+- `925545beee369941aa7b6da3439706845285b12e` · 2026-01-28T19:57:09+03:00 · feat: Implement dynamic Page Object pattern with `PageFactory` for feature-based discovery and `commonSteps` for managing instances within Cucumber tests.
+- `86a499984ffbc99eee79d7b0e148f718dde6a54d` · 2026-05-12T23:43:09+03:00 · fix: ICustomWorld fix
+- `4716508392a147c84554f95e3171b6da2cf1aaa9` · 2026-06-25T11:04:06+03:00 · feat: environments
+- `023dc0edd25456681fb6e954198c4ff62695405b` · 2026-06-25T11:30:51+03:00 · Update playwright.yml
+- `65386de2fb279b2c416df516b418a8d9eebb0124` · 2026-07-02T11:20:05+03:00 · feat: gherkin impl
+- `77f167c59678ed32f47ddae0eae228de428bedd2` · 2026-07-02T12:37:26+03:00 · fix: env
+- `4d7d582ae6eca7dbf39af09a212e0dbd4a33d6ad` · 2026-08-20T16:11:59+03:00 · feat: update selected files
+- `781286e6f35b6ac35e485b52a8c5fc3898d5a0ec` · 2026-08-20T16:20:01+03:00 · fix: updated files
+- `418f2c406ecd19b0e984bb27d7567421e3d8587c` · 2026-08-21T14:26:39+03:00 · fix: hook.ts import issue fixed
+- `aad33498d606df38bc6fe24872665f78a7cb290c` · 2026-08-24T14:37:04+03:00 · Update env.ts
+- `897f2aad9b507146443ec33cf19f13a2a91b3035` · 2026-08-29T18:02:04+03:00 · feat: development
+- `55cceab35d2b83f84e7ee5c4102d1f7ee8ec738f` · 2026-09-07T17:14:31+03:00 · feat: data center
+- `9db2455a2c927dae56d2c8a95e7508f503294ee0` · 2026-10-05T04:55:59+03:00 · feat: mobile and migration
+- `bbd0f72628ffc947a8215f33e12baa0a8422d26f` · 2026-10-08T01:27:58+03:00 · feat: support files for internal migration
+- `3ede335ed2a2635e73917536350de786519a322f` · 2026-10-08T12:54:37+03:00 · feat: playwright
+- `827f507778bbc9349356a06ff733cc3021cbad53` · 2026-10-12T03:59:03+03:00 · feat: api test
+- `40f353eab585cd64e68a4e77ddc840c4a2f8c2e6` · 2026-10-13T16:10:33+03:00 · feat: data center enhance

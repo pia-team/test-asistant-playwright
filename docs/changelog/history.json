@@ -1,0 +1,420 @@
+{
+  "project": "web",
+  "source": "local Git history, non-merge commits",
+  "commits": [
+    {
+      "commit": "e1cb8f87668d1a003ddb20d45eec76ab470e9a6c",
+      "date": "2025-12-04T16:55:59+03:00",
+      "subject": "first project creation",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "ab20f2ff2284d26d8ba38081fc67e4f71fb29077",
+      "date": "2025-12-04T19:12:10+03:00",
+      "subject": "feature: added test run screen",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "89c6e8a3a2544c703957ff4afaa11ae07fb789f2",
+      "date": "2025-12-05T15:42:52+03:00",
+      "subject": "fix: added console.log",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "8d8c201274a5e04d99cfce833d2dd8e704ef9247",
+      "date": "2025-12-08T14:46:05+03:00",
+      "subject": "chore: Ignore Allure and general report directories and update dependency lockfile.",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "f1ac81876a603d625240b5c5c18e8720455682a8",
+      "date": "2025-12-09T16:00:38+03:00",
+      "subject": "fix: video",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "b4086684185ae02360493aebc4c3e26fd2ee308b",
+      "date": "2025-12-10T12:23:03+03:00",
+      "subject": "fix: video",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "a5d5fa232838f165cef2ea10dd1a692ab9fa5fc9",
+      "date": "2025-12-11T12:50:41+03:00",
+      "subject": ".",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "726f9ba69d0e951ddfcbd310728159757ebb165e",
+      "date": "2025-12-11T19:36:27+03:00",
+      "subject": "new fetaure added",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "1335a59f58f2787b39ad24eb01b596c3f88dc553",
+      "date": "2025-12-12T10:36:00+03:00",
+      "subject": "last changes",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "31a5473fa82844d9f23d47de0b5af6adf2b159b2",
+      "date": "2025-12-12T13:38:31+03:00",
+      "subject": "little changes",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "2c19900a0b51f4bc0391034e039437e82f59e485",
+      "date": "2025-12-12T15:31:31+03:00",
+      "subject": ".",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "c00ceaa7e727a0cb733f47f9c0b418cbcdefbe7a",
+      "date": "2025-12-16T16:36:53+03:00",
+      "subject": "Update submodule references for backend and frontend components",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "f30fa5914c2462abfae3008901368ac720eca2de",
+      "date": "2025-12-18T17:32:27+03:00",
+      "subject": "Update submodule references for playwright, backend and frontend components",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "38f665ebadfbc078afe4415414ee3ca1d9826ff3",
+      "date": "2025-12-18T22:07:16+03:00",
+      "subject": "Update submodule references for test-assistant components",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "bb8dce80af7e10686a3fc0b581329f74932d7c7a",
+      "date": "2025-12-26T14:59:09+03:00",
+      "subject": "chore: enable Git LFS for media files",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "19462399813601c93cc790aaabf35ebe4bb20859",
+      "date": "2025-12-26T15:59:39+03:00",
+      "subject": "Update .gitignore",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "8137e286d5cb4155a0209791ec4a1664394405f6",
+      "date": "2025-12-26T17:37:22+03:00",
+      "subject": "Create allure-reports",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "bdf7596fd9c44011db28de45df237a9e65cbd813",
+      "date": "2025-12-26T17:48:33+03:00",
+      "subject": "Update playwright.yml",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "a83d3bf05db72d1c4da4ccc6188c11b9812dc548",
+      "date": "2025-12-26T17:49:54+03:00",
+      "subject": "Update package.json",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "309422e3da3f7a1407650c6a388a64291d42aab5",
+      "date": "2025-12-26T17:59:23+03:00",
+      "subject": "Update .gitignore",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "5fd4c7987eb5d2b9469acb23a01f9be0e2ff9d90",
+      "date": "2025-12-26T18:04:37+03:00",
+      "subject": "Update package-lock.json",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "69811d638f5c8f6e30ad973e2bdef27bf899afa1",
+      "date": "2025-12-26T18:11:16+03:00",
+      "subject": "Update package-lock.json",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "9a8007d5c8b84d62a6ff38e877b7142fda3725b9",
+      "date": "2025-12-26T18:17:11+03:00",
+      "subject": "Update playwright.yml",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "ad91e92bc4602d797f0c7fb19b3f01e2b0f0c69c",
+      "date": "2025-12-26T18:21:21+03:00",
+      "subject": "Delete features/customerSearch directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "d6cf98cd51ef6275405ef5f262012401e10d7db5",
+      "date": "2025-12-26T18:21:30+03:00",
+      "subject": "Delete features/dcmuiv2Flow directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "997a754c8465634957183254a36efe0c7cc398ec",
+      "date": "2025-12-26T18:21:37+03:00",
+      "subject": "Delete features/login directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "9b3d04262379a9c385fa6b1d5821c8f0acfd1a40",
+      "date": "2025-12-26T18:21:47+03:00",
+      "subject": "Delete features/steps directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "7c1c5ef043e4ab70a0fb1a35f05a6ee826e9ff67",
+      "date": "2025-12-26T18:21:56+03:00",
+      "subject": "Delete pages/CustomerManagementPage directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "014eef90bc3adeb5c1b00806c54942be8eb5381a",
+      "date": "2025-12-26T18:22:03+03:00",
+      "subject": "Delete pages/Dcmuiv2Page directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "b1c9888453354e6a18d5d54d71e2d11a873c45f5",
+      "date": "2025-12-26T18:22:10+03:00",
+      "subject": "Delete pages/customerSearchPage directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "16a76f0225ca1f42c7fa99f58ac62526878ec186",
+      "date": "2025-12-26T18:22:17+03:00",
+      "subject": "Delete pages/dcmuiv2FlowPage directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "3228881f50df4dd53a7cb117997ff5fd683c14cd",
+      "date": "2025-12-26T18:22:24+03:00",
+      "subject": "Delete pages/logInPage directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "49d4adc4b398e480df6cf2c30e6b707e31cda834",
+      "date": "2025-12-26T18:23:21+03:00",
+      "subject": "Delete allure-reports",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "5ad4703c5b848227a73b219b5921934fc5862940",
+      "date": "2025-12-26T18:23:35+03:00",
+      "subject": "Delete .idea directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "50c914ddb3787923a591d0ed1661e623f1116c9c",
+      "date": "2025-12-29T11:17:50+03:00",
+      "subject": "Update playwright.yml",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "409808123eb11bdc3ebd785c51c08691f46a8aba",
+      "date": "2025-12-29T11:18:50+03:00",
+      "subject": "Update hooks.ts",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "f36342e0c29b64d6036a1178e5b5827df628b8e5",
+      "date": "2025-12-30T18:40:04+03:00",
+      "subject": "Update cucumber.js",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "0a62ddc5dfd703839d346ebb097a1eb3e6a03a31",
+      "date": "2026-01-05T10:08:09+03:00",
+      "subject": "feat: Add `dev.json` configuration and dynamically load Cucumber step definitions in `cucumber.js`.",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "e2b3843d5078ec1f7d1342f5da527170c04a8ffe",
+      "date": "2026-01-14T12:25:17+03:00",
+      "subject": "feat: add feature context to step logs for better log routing",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "33f557739c69a48412f6ff88ba1891fac5ec12a9",
+      "date": "2026-01-14T12:32:28+03:00",
+      "subject": "chore: cleanup deleted test artifacts and removed page file",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "8251c5a41e6e945352665d4731e6348ce25e993e",
+      "date": "2026-01-14T14:10:44+03:00",
+      "subject": "chore: add new feature files and test artifacts",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "8b95aeef34b383c0e929e82c54108722e627aea9",
+      "date": "2026-01-14T14:16:06+03:00",
+      "subject": "Delete features directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "5c190dd16fd2fb64fff36e3435455b2383574910",
+      "date": "2026-01-14T14:16:23+03:00",
+      "subject": "Delete pages/dcmv2 directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "9b11d47f7c95874db9380f69c6b252e425ae4ea6",
+      "date": "2026-01-14T14:16:52+03:00",
+      "subject": "Delete reports directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "7f63a5c09d4ee549b23342be5f1530eb65d5d240",
+      "date": "2026-01-14T14:17:04+03:00",
+      "subject": "Delete allure-results directory",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "50ce3246b62fd285048e8677c51c309ee2a17547",
+      "date": "2026-01-15T14:08:42+03:00",
+      "subject": "feat: Implement Playwright-Cucumber integration with browser management, enhanced logging, and development environment configuration.",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "ffdcfe44706bacc053e21698460b8d1a2ab60b88",
+      "date": "2026-01-16T15:34:08+03:00",
+      "subject": "docs: add example PDF",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "7c6b4ef1bc13cefbafb175f811fb670118218969",
+      "date": "2026-01-20T14:29:08+03:00",
+      "subject": "feat: Add Playwright/Cucumber tests for DCM address editing and update test runner configuration.",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "2d061348d27a5909bdbe6b943809f088449d1c5b",
+      "date": "2026-01-21T12:38:09+03:00",
+      "subject": "feat: Add Playwright worker configuration via environment variable and include config file in tsconfig.",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "c8f178b820c37796737bab1e64b32a48245f8450",
+      "date": "2026-01-22T14:33:22+03:00",
+      "subject": "feat: add Playwright CustomWorld for Cucumber with browser management, video recording, and configurable browser types.",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "de349b3c4a6b17ef6a208530fc28c26eb7798f82",
+      "date": "2026-01-27T15:40:28+03:00",
+      "subject": "feat: Implement core Playwright-Cucumber test framework with common steps, page factory, and custom world definition.",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "f190574e314d21871854cda24e346323350ffb9c",
+      "date": "2026-01-27T18:13:03+03:00",
+      "subject": ".",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "925545beee369941aa7b6da3439706845285b12e",
+      "date": "2026-01-28T19:57:09+03:00",
+      "subject": "feat: Implement dynamic Page Object pattern with `PageFactory` for feature-based discovery and `commonSteps` for managing instances within Cucumber tests.",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "86a499984ffbc99eee79d7b0e148f718dde6a54d",
+      "date": "2026-05-12T23:43:09+03:00",
+      "subject": "fix: ICustomWorld fix",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "4716508392a147c84554f95e3171b6da2cf1aaa9",
+      "date": "2026-06-25T11:04:06+03:00",
+      "subject": "feat: environments",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "023dc0edd25456681fb6e954198c4ff62695405b",
+      "date": "2026-06-25T11:30:51+03:00",
+      "subject": "Update playwright.yml",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "65386de2fb279b2c416df516b418a8d9eebb0124",
+      "date": "2026-07-02T11:20:05+03:00",
+      "subject": "feat: gherkin impl",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "77f167c59678ed32f47ddae0eae228de428bedd2",
+      "date": "2026-07-02T12:37:26+03:00",
+      "subject": "fix: env",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "4d7d582ae6eca7dbf39af09a212e0dbd4a33d6ad",
+      "date": "2026-08-20T16:11:59+03:00",
+      "subject": "feat: update selected files",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "781286e6f35b6ac35e485b52a8c5fc3898d5a0ec",
+      "date": "2026-08-20T16:20:01+03:00",
+      "subject": "fix: updated files",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "418f2c406ecd19b0e984bb27d7567421e3d8587c",
+      "date": "2026-08-21T14:26:39+03:00",
+      "subject": "fix: hook.ts import issue fixed",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "aad33498d606df38bc6fe24872665f78a7cb290c",
+      "date": "2026-08-24T14:37:04+03:00",
+      "subject": "Update env.ts",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "897f2aad9b507146443ec33cf19f13a2a91b3035",
+      "date": "2026-08-29T18:02:04+03:00",
+      "subject": "feat: development",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "55cceab35d2b83f84e7ee5c4102d1f7ee8ec738f",
+      "date": "2026-09-07T17:14:31+03:00",
+      "subject": "feat: data center",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "9db2455a2c927dae56d2c8a95e7508f503294ee0",
+      "date": "2026-10-05T04:55:59+03:00",
+      "subject": "feat: mobile and migration",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "bbd0f72628ffc947a8215f33e12baa0a8422d26f",
+      "date": "2026-10-08T01:27:58+03:00",
+      "subject": "feat: support files for internal migration",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "3ede335ed2a2635e73917536350de786519a322f",
+      "date": "2026-10-08T12:54:37+03:00",
+      "subject": "feat: playwright",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "827f507778bbc9349356a06ff733cc3021cbad53",
+      "date": "2026-10-12T03:59:03+03:00",
+      "subject": "feat: api test",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    },
+    {
+      "commit": "40f353eab585cd64e68a4e77ddc840c4a2f8c2e6",
+      "date": "2026-10-13T16:10:33+03:00",
+      "subject": "feat: data center enhance",
+      "confidence": "git-subject-only; not a verified release or feature claim"
+    }
+  ]
+}

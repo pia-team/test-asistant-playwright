@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Resource App Fixture</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 2rem; }
+      .row { margin: 0.75rem 0; }
+      .hidden { display: none; }
+      #result-row { margin-top: 1rem; font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <h1>Manage Resources</h1>
+    <div class="row">
+      <button type="button" data-testid="create-btn" id="create-btn">Create Resource</button>
+    </div>
+    <div class="row">
+      <label>Resource ID</label>
+      <div data-testid="resource-id" id="resource-id" data-resource-id="">—</div>
+    </div>
+    <div class="row">
+      <label for="name-input">Name</label>
+      <input data-testid="name-input" id="name-input" type="text" />
+    </div>
+    <div class="row">
+      <label for="filter-input">Resource ID filter</label>
+      <input data-testid="filter-input" id="filter-input" type="text" />
+      <button type="button" data-testid="apply-filter" id="apply-filter">Apply Filter</button>
+    </div>
+    <div data-testid="result-row" id="result-row" class="hidden"></div>
+    <div data-testid="empty-label" id="empty-label">   </div>
+    <div data-testid="dup">First</div>
+    <div data-testid="dup">Second</div>
+    <input data-testid="secret" id="secret" type="password" value="super-secret" />
+    <script>
+      (function () {
+        var currentId = '';
+        function mintId() {
+          currentId = 'RES-' + String(Date.now()) + String(Math.floor(Math.random() * 1000));
+          var el = document.getElementById('resource-id');
+          el.textContent = currentId;
+          el.setAttribute('data-resource-id', currentId);
+        }
+        document.getElementById('create-btn').addEventListener('click', mintId);
+        document.getElementById('apply-filter').addEventListener('click', function () {
+          var filter = document.getElementById('filter-input').value.trim();
+          var row = document.getElementById('result-row');
+          if (filter && filter === currentId) {
+            row.textContent = currentId;
+            row.classList.remove('hidden');
+          } else {
+            row.textContent = '';
+            row.classList.add('hidden');
+          }
+        });
+        // Seed a visible ID so TEXT capture works before create as well
+        mintId();
+      })();
+    </script>
+  </body>
+</html>

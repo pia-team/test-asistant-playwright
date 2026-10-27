@@ -126,42 +126,72 @@ function guessIdFields(
 export class FlowCaptureSession {
   private responses: CapturedResponse[] = [];
   private listener?: (res: Response) => void;
+  /** Pages already subscribed — avoid duplicate listeners on the same Page. */
+  private attachedPages = new Set<Page>();
 
   attach(page: Page) {
-    this.listener = async (res: Response) => {
-      try {
-        const req = res.request();
-        const method = req.method();
-        if (!['GET', 'POST', 'PUT', 'PATCH'].includes(method)) return;
-        const status = res.status();
-        if (status < 200 || status >= 400) return;
-        const ct = res.headers()['content-type'] || '';
-        if (!ct.includes('json') && !ct.includes('text')) return;
-        let body: unknown = null;
+    if (page.isClosed()) return;
+    if (!this.listener) {
+      this.listener = async (res: Response) => {
         try {
-          body = await res.json();
+          const req = res.request();
+          const method = req.method();
+          if (!['GET', 'POST', 'PUT', 'PATCH'].includes(method)) return;
+          const status = res.status();
+          if (status < 200 || status >= 400) return;
+          const ct = res.headers()['content-type'] || '';
+          if (!ct.includes('json') && !ct.includes('text')) return;
+          let body: unknown = null;
+          try {
+            body = await res.json();
+          } catch {
+            return;
+          }
+          this.responses.push({
+            method,
+            url: res.url(),
+            status,
+            body: maskValue('body', body),
+          });
+          if (this.responses.length > 80) this.responses.shift();
         } catch {
-          return;
+          // ignore capture errors
         }
-        this.responses.push({
-          method,
-          url: res.url(),
-          status,
-          body: maskValue('body', body),
-        });
-        if (this.responses.length > 80) this.responses.shift();
-      } catch {
-        // ignore capture errors
-      }
-    };
+      };
+    }
+    if (this.attachedPages.has(page)) return;
     page.on('response', this.listener);
+    this.attachedPages.add(page);
   }
 
   detach(page: Page) {
-    if (this.listener) {
-      page.off('response', this.listener);
-      this.listener = undefined;
+    if (this.listener && this.attachedPages.has(page)) {
+      try {
+        if (!page.isClosed()) {
+          page.off('response', this.listener);
+        }
+      } catch {
+        // ignore
+      }
+      this.attachedPages.delete(page);
     }
+  }
+
+  /** Detach from every page this session subscribed to (scenario teardown). */
+  detachAll() {
+    if (this.listener) {
+      for (const page of this.attachedPages) {
+        try {
+          if (!page.isClosed()) {
+            page.off('response', this.listener);
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+    this.attachedPages.clear();
+    this.listener = undefined;
   }
 
   async flushToContextAndArtifact() {

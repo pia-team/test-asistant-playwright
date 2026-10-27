@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { Download } from '@playwright/test';
@@ -14,6 +15,9 @@ type ManifestResource = {
   ephemeral?: boolean;
   lifecycleScope?: string;
   datasetPath?: string;
+  checksumSha256?: string;
+  consumerRef?: string;
+  resourceVersionId?: string;
 };
 
 export type DatasetRow = Record<string, string>;
@@ -221,7 +225,40 @@ export const testData = {
     const slug = toSlug(bindingKey);
     const entry = manifest?.resources?.[slug] ?? manifest?.resources?.[bindingKey];
     if (entry?.localPath) {
-      return entry.localPath;
+      const resolved = path.resolve(entry.localPath);
+      const manifestPath = process.env.COTESTER_RUN_DATA_MANIFEST_PATH;
+      if (manifestPath) {
+        const workRoot = path.resolve(path.dirname(manifestPath));
+        if (!resolved.startsWith(workRoot + path.sep) && resolved !== workRoot) {
+          throw new Error(
+            `PREFLIGHT: Data Center file binding "${bindingKey}" localPath is outside the run work directory.`,
+          );
+        }
+      }
+      try {
+        await fs.access(resolved);
+      } catch {
+        throw new Error(
+          `PREFLIGHT: Data Center file binding "${bindingKey}" is missing on disk (resource unavailable).`,
+        );
+      }
+      if (entry.checksumSha256) {
+        const buf = await fs.readFile(resolved);
+        const actual = crypto.createHash('sha256').update(buf).digest('hex');
+        if (actual.toLowerCase() !== String(entry.checksumSha256).toLowerCase()) {
+          throw new Error(
+            `PREFLIGHT: Data Center file binding "${bindingKey}" checksum mismatch (corrupted or stale materialization).`,
+          );
+        }
+      }
+      return resolved;
+    }
+    // Manifest mode: never fall back to local demo paths (WP7 Finding 3).
+    const manifestEnv = process.env.COTESTER_RUN_DATA_MANIFEST_PATH;
+    if (manifestEnv && String(manifestEnv).trim() !== '') {
+      throw new Error(
+        `PREFLIGHT: Data Center file binding "${bindingKey}" is not available. Bind the resource and re-run; this is not a test assertion failure.`,
+      );
     }
     const legacy = resolveLegacyPath(bindingKey);
     if (legacy) {
@@ -231,7 +268,7 @@ export const testData = {
       return legacy;
     }
     throw new Error(
-      `Data Center file binding "${bindingKey}" is not available. Ensure the resource is bound and the test run manifest was prepared.`,
+      `PREFLIGHT: Data Center file binding "${bindingKey}" is not available. Bind the resource and re-run; this is not a test assertion failure.`,
     );
   },
 

@@ -1,4 +1,6 @@
 import { Before, After, Status, AfterStep, BeforeStep } from '@cucumber/cucumber';
+// Heal stale PLAYWRIGHT_BROWSERS_PATH before any browser launch (world.openBrowser).
+import './playwright-browsers-path';
 import type { ICustomWorld } from './world';
 import { CustomWorld } from './world';
 import {
@@ -88,10 +90,31 @@ async function ensureScreenshotsDir() {
   }
 }
 
-async function captureStepScreenshot(world: ICustomWorld, featureName: string): Promise<void> {
-  if (!world.page) return;
+/** Prefer active open page; fall back if the tab closed mid-step. */
+async function resolveScreenshotPage(world: ICustomWorld): Promise<import('playwright').Page | undefined> {
+  try {
+    await world.activePageManager?.settle();
+  } catch {
+    // ignore
+  }
+  const managed = world.activePageManager?.getActivePage();
+  if (managed && !managed.isClosed()) {
+    if (world.activeRawPage !== managed || !world.page || world.page.isClosed()) {
+      world.applyActivePage(managed);
+    }
+    return world.page && !world.page.isClosed() ? world.page : managed;
+  }
+  if (world.page && !world.page.isClosed()) {
+    return world.page;
+  }
+  return undefined;
+}
 
-  const buffer = await world.page.screenshot({ fullPage: false });
+async function captureStepScreenshot(world: ICustomWorld, featureName: string): Promise<void> {
+  const page = await resolveScreenshotPage(world);
+  if (!page) return;
+
+  const buffer = await page.screenshot({ fullPage: false });
   const filename = `${randomUUID()}.png`;
   const filepath = path.join(SCREENSHOTS_DIR, filename);
   await fs.writeFile(filepath, buffer);
@@ -166,7 +189,16 @@ Before(async function (this: CustomWorld, scenario) {
 });
 
 // CRITICAL: Include feature name in EVERY step log for parallel execution support
-BeforeStep(function (this: ICustomWorld, { pickleStep, pickle }) {
+BeforeStep(async function (this: ICustomWorld, { pickleStep, pickle }) {
+  try {
+    await this.activePageManager?.settle();
+    const managed = this.activePageManager?.getActivePage();
+    if (managed && !managed.isClosed() && this.activeRawPage !== managed) {
+      this.applyActivePage(managed);
+    }
+  } catch {
+    // ignore settle errors — step will fail on its own if page is unusable
+  }
   const featureName = this.currentFeatureName || 'unknown';
   if (this.healingContext) {
     this.healingContext.currentStepKey = pickleStep.id;
@@ -232,10 +264,10 @@ After(async function (this: ICustomWorld, scenario) {
     generatedAfterError = e;
   }
 
-  if (this.flowCapture && this.page) {
+  if (this.flowCapture) {
     try {
       await this.flowCapture.flushToContextAndArtifact();
-      this.flowCapture.detach(this.page);
+      this.flowCapture.detachAll();
     } catch (e) {
       console.warn('Flow capture flush failed:', e);
     }
@@ -248,10 +280,13 @@ After(async function (this: ICustomWorld, scenario) {
   clearLocatorOverrides();
   this.healingContext = undefined;
 
-  if (this.page && status === Status.FAILED && screenshotMode !== 'NONE') {
+  if (status === Status.FAILED && screenshotMode !== 'NONE') {
     try {
-      const png = await this.page.screenshot({ fullPage: true, timeout: 10000 });
-      await this.attach(png, 'image/png');
+      const page = await resolveScreenshotPage(this);
+      if (page) {
+        const png = await page.screenshot({ fullPage: true, timeout: 10000 });
+        await this.attach(png, 'image/png');
+      }
     } catch (e) {
       console.warn(`⚠️ Final screenshot failed: ${e}`);
     }
@@ -277,7 +312,9 @@ After(async function (this: ICustomWorld, scenario) {
 // The video path is logged by closeBrowser, but we can still get it here for attachment
 async function attachFailureVideo(world: ICustomWorld): Promise<void> {
   try {
-    const video = world.page?.video();
+    // Prefer handle stashed in closeBrowser (page refs are cleared after context close).
+    const video = world.pendingVideo ?? world.page?.video();
+    world.pendingVideo = undefined;
     if (!video) return;
 
     const videoPath = await video.path();
@@ -288,8 +325,11 @@ async function attachFailureVideo(world: ICustomWorld): Promise<void> {
         videoBuffer = await fs.readFile(videoPath);
         break;
       } catch (e: any) {
-        if (e.code !== 'ENOENT') throw e;
-        await new Promise(r => setTimeout(r, 200));
+        if (e.code !== 'ENOENT') {
+          console.warn(`⚠️ Video attachment failed: ${e}`);
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 200));
       }
     }
 
