@@ -19,6 +19,16 @@ import { publicFlowValues } from './flowContext';
 import { clearLocatorOverrides } from './locator-registry';
 import { resetTestDataCache } from './testData';
 import { runGeneratedAfter, runGeneratedBefore } from './lifecycleRegistry';
+import {
+  buildExecutionUnitKey,
+  buildScenarioKey,
+  emitStepEvent,
+  emitStepScreenshot,
+  parseRowIndexFromEnv,
+  parseRowLabelFromEnv,
+  type StepEventKind,
+} from './step-event';
+import { stepEventFromCucumberStatus } from './step-status';
 
 function parsePositiveInt(envKey: string, fallbackMs: number): number {
   const raw = process.env[envKey];
@@ -36,6 +46,25 @@ const SCREENSHOTS_DIR = 'reports/screenshots';
 
 /** Tracks cucumber-js scenario attempts (initial run + retries) per pickle id. */
 const attemptByPickleId = new Map<string, number>();
+/** 0-based step counter per pickle attempt key. */
+const stepIndexByAttempt = new Map<string, number>();
+/** Scenario context stashed in Before for step events. */
+const scenarioCtxByWorld = new WeakMap<object, {
+  featurePath: string;
+  featureName: string;
+  scenarioName: string;
+  scenarioKey: string;
+  attempt: number;
+  pickleId: string;
+  outlineLine?: number;
+  rowIndex?: number;
+  rowLabel?: string;
+  executionUnitKey: string;
+}>();
+
+function attemptKey(pickleId: string, attempt: number): string {
+  return `${pickleId}#${attempt}`;
+}
 
 function featureNameFromUri(featureUri: string): string {
   if (!featureUri) {
@@ -110,7 +139,19 @@ async function resolveScreenshotPage(world: ICustomWorld): Promise<import('playw
   return undefined;
 }
 
-async function captureStepScreenshot(world: ICustomWorld, featureName: string): Promise<void> {
+async function captureStepScreenshot(
+  world: ICustomWorld,
+  featureName: string,
+  meta?: {
+    featurePath: string;
+    scenarioKey: string;
+    attempt: number;
+    stepIndex: number;
+    pickleStepId?: string;
+    rowIndex?: number;
+    executionUnitKey: string;
+  },
+): Promise<void> {
   const page = await resolveScreenshotPage(world);
   if (!page) return;
 
@@ -120,6 +161,22 @@ async function captureStepScreenshot(world: ICustomWorld, featureName: string): 
   await fs.writeFile(filepath, buffer);
   console.log(chalk.cyan(`📸 Screenshot [${featureName}]: ${filepath}`));
   await world.attach(buffer, 'image/png');
+  if (meta) {
+    emitStepScreenshot({
+      v: 1,
+      kind: 'SCREENSHOT',
+      runner: 'WEB',
+      featurePath: meta.featurePath,
+      featureName,
+      scenarioKey: meta.scenarioKey,
+      attempt: meta.attempt,
+      stepIndex: meta.stepIndex,
+      pickleStepId: meta.pickleStepId,
+      rowIndex: meta.rowIndex,
+      fileName: filename,
+      executionUnitKey: meta.executionUnitKey,
+    });
+  }
 }
 
 Before(async function (this: CustomWorld, scenario) {
@@ -163,8 +220,42 @@ Before(async function (this: CustomWorld, scenario) {
   const pickleId = pickleKey(scenario.pickle);
   const attempt = (attemptByPickleId.get(pickleId) ?? 0) + 1;
   attemptByPickleId.set(pickleId, attempt);
+  stepIndexByAttempt.set(attemptKey(pickleId, attempt), 0);
 
   this.currentFeatureName = featureName;
+
+  const scenarioName = scenario.pickle?.name || 'Unknown Scenario';
+  const outlineLine =
+    typeof (scenario.pickle as { locations?: { line?: number }[] })?.locations?.[0]?.line === 'number'
+      ? (scenario.pickle as { locations?: { line?: number }[] }).locations![0]!.line
+      : undefined;
+  const rowIndex = parseRowIndexFromEnv();
+  const rowLabel = parseRowLabelFromEnv();
+  const scenarioKey = buildScenarioKey({
+    featurePath: featureUri || featureName,
+    scenarioName,
+    pickleId,
+    outlineLine,
+    rowIndex,
+  });
+  const executionUnitKey = buildExecutionUnitKey({
+    featurePath: featureUri || featureName,
+    scenarioKey,
+    attempt,
+    rowIndex,
+  });
+  scenarioCtxByWorld.set(this, {
+    featurePath: featureUri || featureName,
+    featureName,
+    scenarioName,
+    scenarioKey,
+    attempt,
+    pickleId,
+    outlineLine,
+    rowIndex,
+    rowLabel,
+    executionUnitKey,
+  });
 
   if (featureName) {
     if (attempt > 1) {
@@ -207,16 +298,70 @@ BeforeStep(async function (this: ICustomWorld, { pickleStep, pickle }) {
   }
   // Format: ➡ STEP START [feature-name]: step text
   console.error(chalk.yellow(`➡ STEP START [${featureName}]: ${pickleStep.text}`));
+
+  const ctx = scenarioCtxByWorld.get(this);
+  if (ctx) {
+    const aKey = attemptKey(ctx.pickleId, ctx.attempt);
+    const next = (stepIndexByAttempt.get(aKey) ?? 0) + 1;
+    stepIndexByAttempt.set(aKey, next);
+    emitStepEvent({
+      v: 1,
+      event: 'START',
+      runner: 'WEB',
+      featurePath: ctx.featurePath,
+      featureName: ctx.featureName || featureName,
+      scenarioKey: ctx.scenarioKey,
+      scenarioName: ctx.scenarioName,
+      attempt: ctx.attempt,
+      stepIndex: next,
+      pickleStepId: pickleStep.id,
+      rowIndex: ctx.rowIndex,
+      rowLabel: ctx.rowLabel,
+      text: pickleStep.text ?? '',
+      executionUnitKey: ctx.executionUnitKey,
+    });
+  }
 });
 
 AfterStep(async function (this: ICustomWorld, { result, pickleStep, pickle }) {
   const featureName = this.currentFeatureName || 'unknown';
   const status = result.status;
 
-  if (status === 'PASSED') {
+  const mapped = stepEventFromCucumberStatus(status);
+  let event: StepEventKind = mapped.event;
+  let reason: string | undefined = mapped.reason;
+  if (event === 'PASS') {
     console.error(chalk.green(`✓ STEP PASS [${featureName}]: ${pickleStep.text}`));
+  } else if (event === 'SKIP') {
+    console.error(chalk.gray(`⊘ STEP SKIPPED [${featureName}]: ${pickleStep.text}`));
   } else {
+    if (!reason && String(result?.message || '').toLowerCase().includes('timed out')) {
+      reason = 'timeout';
+    }
     console.error(chalk.red(`✗ STEP FAIL [${featureName}]: ${pickleStep.text}`));
+  }
+
+  const ctx = scenarioCtxByWorld.get(this);
+  const aKey = ctx ? attemptKey(ctx.pickleId, ctx.attempt) : '';
+  const stepIndex = aKey ? stepIndexByAttempt.get(aKey) ?? 0 : 0;
+  if (ctx && stepIndex > 0) {
+    emitStepEvent({
+      v: 1,
+      event,
+      runner: 'WEB',
+      featurePath: ctx.featurePath,
+      featureName: ctx.featureName || featureName,
+      scenarioKey: ctx.scenarioKey,
+      scenarioName: ctx.scenarioName,
+      attempt: ctx.attempt,
+      stepIndex,
+      pickleStepId: pickleStep.id,
+      rowIndex: ctx.rowIndex,
+      rowLabel: ctx.rowLabel,
+      text: pickleStep.text ?? '',
+      reason,
+      executionUnitKey: ctx.executionUnitKey,
+    });
   }
 
   const mode = getScreenshotMode();
@@ -229,7 +374,21 @@ AfterStep(async function (this: ICustomWorld, { result, pickleStep, pickle }) {
   }
 
   try {
-    await captureStepScreenshot(this, featureName);
+    await captureStepScreenshot(
+      this,
+      featureName,
+      ctx && stepIndex > 0
+        ? {
+            featurePath: ctx.featurePath,
+            scenarioKey: ctx.scenarioKey,
+            attempt: ctx.attempt,
+            stepIndex,
+            pickleStepId: pickleStep.id,
+            rowIndex: ctx.rowIndex,
+            executionUnitKey: ctx.executionUnitKey,
+          }
+        : undefined,
+    );
   } catch (e) {
     console.warn(`⚠️ Step screenshot failed: ${e}`);
   }

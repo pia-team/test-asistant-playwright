@@ -1,10 +1,14 @@
 import { setWorldConstructor, World, IWorldOptions } from '@cucumber/cucumber';
 import { Browser, BrowserContext, Page, chromium, firefox, webkit } from 'playwright';
 import type { BrowserContextOptions } from 'playwright';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { randomUUID } from 'crypto';
 import type { IBasePage } from './pageFactory';
 import { createHealingContext, type HealingContext } from './self-heal';
 import { wrapPageForSelfHeal } from './healing-page';
 import { ActivePageManager } from './active-page';
+import { emitStepTrace, isPlaywrightTraceEnabled } from './step-event';
 
 // Supported browsers: chromium, firefox, webkit (Safari)
 type BrowserType = 'chromium' | 'firefox' | 'webkit';
@@ -58,6 +62,8 @@ type CustomWorldState = {
    * Used only for optional failure attachment — never throws if missing.
    */
   pendingVideo?: { path: () => Promise<string> };
+  /** Paket 8 / Faz 3 — opt-in Playwright tracing (default off). */
+  traceEnabled?: boolean;
   openBrowser: () => Promise<void>;
   closeBrowser: () => Promise<void>;
   /** Apply raw Playwright page as world.page (heal wrap + invalidate PO cache). */
@@ -79,6 +85,7 @@ export class CustomWorld extends World implements ICustomWorld {
   flowCapture?: import('./flow-capture').FlowCaptureSession;
   healingContext?: HealingContext;
   pendingVideo?: { path: () => Promise<string> };
+  traceEnabled?: boolean;
 
   constructor(options: IWorldOptions) {
     super(options);
@@ -121,7 +128,10 @@ export class CustomWorld extends World implements ICustomWorld {
     const headless = process.env.HEADLESS !== 'false'; // default true
     const slowMo = resolveSlowMo();
 
-    console.log(`🌐 Browser: ${browserType} | Headless: ${headless} | SlowMo: ${slowMo}ms | Video: ${isVideoRecordingEnabled() ? 'on' : 'off'}`);
+    const traceOn = isPlaywrightTraceEnabled();
+    console.log(
+      `🌐 Browser: ${browserType} | Headless: ${headless} | SlowMo: ${slowMo}ms | Video: ${isVideoRecordingEnabled() ? 'on' : 'off'} | Trace: ${traceOn ? 'on' : 'off'}`,
+    );
 
     const launchOptions = {
       headless,
@@ -154,6 +164,20 @@ export class CustomWorld extends World implements ICustomWorld {
       };
     }
     this.context = await this.browser.newContext(contextOptions);
+
+    this.traceEnabled = isPlaywrightTraceEnabled();
+    if (this.traceEnabled && this.context) {
+      try {
+        await this.context.tracing.start({
+          screenshots: true,
+          snapshots: true,
+          sources: false,
+        });
+      } catch (e) {
+        console.error(`❌ Playwright trace start failed (test continues): ${e}`);
+        this.traceEnabled = false;
+      }
+    }
 
     const navRaw = process.env.COTESTER_NAVIGATION_TIMEOUT_MS;
     if (navRaw != null && navRaw.trim() !== '') {
@@ -199,6 +223,34 @@ export class CustomWorld extends World implements ICustomWorld {
     this.activePageManager?.dispose();
     this.activePageManager = undefined;
     this.pageInstance = undefined;
+
+    // Stop opt-in trace before context close (never fail the scenario).
+    if (this.traceEnabled && this.context) {
+      try {
+        const tracesDir = path.join('reports', 'traces');
+        await fs.mkdir(tracesDir, { recursive: true });
+        const fileName = `${randomUUID()}.zip`;
+        const tracePath = path.join(tracesDir, fileName);
+        await this.context.tracing.stop({ path: tracePath });
+        console.log(`🕵️ Trace kaydedildi [${featureName}]: ${tracePath}`);
+        emitStepTrace({
+          v: 1,
+          kind: 'TRACE',
+          runner: 'WEB',
+          featurePath: featureName,
+          featureName,
+          fileName,
+        });
+      } catch (e) {
+        console.error(`❌ Playwright trace stop failed (test continues): ${e}`);
+        try {
+          await this.context.tracing.stop();
+        } catch {
+          // ignore cleanup
+        }
+      }
+      this.traceEnabled = false;
+    }
 
     // Close context (all tabs) after disposing listeners — do not leave closed page as active.
     try {

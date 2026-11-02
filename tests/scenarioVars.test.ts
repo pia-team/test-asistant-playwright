@@ -38,6 +38,14 @@ describe('scenarioVars helpers', () => {
     assert.equal(SAFE_VARIABLE.test('1bad'), false);
     assert.throws(() => setScenarioVar(world, '1bad', 'x'), /Invalid scenario variable name/);
     assert.throws(() => setScenarioVar(world, 'empty', ''), /empty string/);
+    // Same value is idempotent; different value refuses overwrite
+    setScenarioVar(world, 'resourceId', 'RES-1');
+    assert.throws(
+      () => setScenarioVar(world, 'resourceId', 'RES-2'),
+      /refusing overwrite/,
+    );
+    setScenarioVar(world, 'resourceId', 'RES-2', { allowOverwrite: true });
+    assert.equal(requireScenarioVar(world, 'resourceId'), 'RES-2');
   });
 
   it('requireScenarioVar fails clearly when missing', () => {

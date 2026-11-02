@@ -111,3 +111,52 @@ Kanıt / doğrulama: vela-login-3.resolve.ts / .steps.ts patched.
 Yeni sekme/popup açılınca scenario-scoped active page güncellenir; screenshot ve step’ler doğru sekmeden alınır, sekme kapanınca önceki sayfaya dönülür.
 
 Kanıt / doğrulama: tests/active-page.test.ts → 11/11 pass (headless Chromium smoke); allure-cucumberjs değiştirilmedi.
+
+<!-- CHANGELOG:ENTRY {"bump": "minor", "date": "2026-10-29T17:39:04+03:00", "evidence": "scenarioVars unit helper testleri (4) geçti; Chromium smoke bu ortamda çalıştırılamadı.", "id": "2026-10-29-dynamic-data-ai-instructions", "summary": "Aynı senaryoda yakalanan değerler güvenli saklanır; farklı overwrite reddedilir; URL sorgu parametresi capture ve assertion helper’ları eklendi.", "title": "Senaryo değişkeni overwrite koruması ve URL capture", "version": "1.3.0"} -->
+## 1.3.0 — Senaryo değişkeni overwrite koruması ve URL capture
+
+Aynı senaryoda yakalanan değerler güvenli saklanır; farklı overwrite reddedilir; URL sorgu parametresi capture ve assertion helper’ları eklendi.
+
+Kanıt / doğrulama: scenarioVars unit helper testleri (4) geçti; Chromium smoke bu ortamda çalıştırılamadı.
+
+<!-- CHANGELOG:ENTRY {"bump": "minor", "date": "2026-10-30T16:03:32+03:00", "evidence": "flow-context.steps.ts: loaded from Data Center config … key …; birim/E2E koşulmadı.", "id": "2026-10-30-dc-phase1-config", "summary": "WEB runner, Data Center CONFIG anahtarını senaryo değişkenine yükleyebilir.", "title": "CONFIG anahtarından senaryo değişkeni yükleme adımı", "version": "1.4.0"} -->
+## 1.4.0 — CONFIG anahtarından senaryo değişkeni yükleme adımı
+
+WEB runner, Data Center CONFIG anahtarını senaryo değişkenine yükleyebilir.
+
+Kanıt / doğrulama: flow-context.steps.ts: loaded from Data Center config … key …; birim/E2E koşulmadı.
+
+<!-- CHANGELOG:ENTRY {"bump": "minor", "date": "2026-10-30T18:20:16+03:00", "evidence": "tests/step-event.test.ts 2/2 PASS; canlı Chromium E2E UNVERIFIED.", "id": "2026-10-30-pkg8-phase2-step-state-hybrid-preview", "summary": "WEB runner, kararlı step identity ve AfterStep screenshot metadata marker’larını stdout’a yazar; ham STEP START/PASS/FAIL logları korunur.", "title": "WEB structured step and screenshot markers", "version": "1.5.0"} -->
+## 1.5.0 — WEB structured step and screenshot markers
+
+WEB runner, kararlı step identity ve AfterStep screenshot metadata marker’larını stdout’a yazar; ham STEP START/PASS/FAIL logları korunur.
+
+Kanıt / doğrulama: tests/step-event.test.ts 2/2 PASS; canlı Chromium E2E UNVERIFIED.
+
+<!-- CHANGELOG:ENTRY {"bump": "minor", "date": "2026-10-30T21:10:42+03:00", "evidence": "tests/step-event.test.ts 4/4 PASS; Trace Viewer E2E UNVERIFIED.", "id": "2026-10-30-pkg8-phase3-step-evidence-playback", "summary": "WEB runner Trace varsayılan kapalıdır; açıkken reports/traces zip üretir ve test sonucunu bozmadan TRACE marker yazar.", "title": "Opt-in Playwright Trace with structured TRACE marker", "version": "1.6.0"} -->
+## 1.6.0 — Opt-in Playwright Trace with structured TRACE marker
+
+WEB runner Trace varsayılan kapalıdır; açıkken reports/traces zip üretir ve test sonucunu bozmadan TRACE marker yazar.
+
+Kanıt / doğrulama: tests/step-event.test.ts 4/4 PASS; Trace Viewer E2E UNVERIFIED.
+
+<!-- CHANGELOG:ENTRY {"bump": "patch", "date": "2026-11-01T16:34:43+03:00", "evidence": "./node_modules/.bin/tsc --noEmit --pretty false exit 0. tests/step-status.test.ts 1/1 PASS. Canlı senaryo koşumu yok.", "id": "2026-11-01-web-gen-stabilize", "summary": "Cucumber AfterStep durumu string literal yerine Status enum üyeleriyle karşılaştırılır; generation validation’ın kopyaladığı support/hooks.ts TS2367 üretmez.", "title": "WEB runner AfterStep enum karşılaştırması", "version": "1.6.1"} -->
+## 1.6.1 — WEB runner AfterStep enum karşılaştırması
+
+Cucumber AfterStep durumu string literal yerine Status enum üyeleriyle karşılaştırılır; generation validation’ın kopyaladığı support/hooks.ts TS2367 üretmez.
+
+Kanıt / doğrulama: ./node_modules/.bin/tsc --noEmit --pretty false exit 0. tests/step-status.test.ts 1/1 PASS. Canlı senaryo koşumu yok.
+
+<!-- CHANGELOG:ENTRY {"bump": "patch", "date": "2026-11-02T01:25:20+03:00", "evidence": "npx cucumber-js --dry-run @sim-create-1: 17 steps defined (0 undefined/ambiguous). Live TEST_ENV=test chromium: Given Keycloak FAIL because config/projects/Orange.test.json has no username/password (vault injects these only via RUN_TESTS job). Customer matched features/steps/.../sim-create-1.steps.ts:54 {string} handler; callback+promise did not fire. 0 PASS, 1 FAIL, 16 SKIPPED.", "id": "2026-11-02-cucumber-step-arity", "summary": "sim-create-1 Customer, Profile, Address 1 ve Batch adımları {string} yakalar; 2FF sabit literal kalır. Cucumber artık extra value parametresini callback sanmaz. MCP locator'ları değişmedi.", "title": "sim-create-1 Cucumber handler arity fix", "version": "1.6.2"} -->
+## 1.6.2 — sim-create-1 Cucumber handler arity fix
+
+sim-create-1 Customer, Profile, Address 1 ve Batch adımları {string} yakalar; 2FF sabit literal kalır. Cucumber artık extra value parametresini callback sanmaz. MCP locator'ları değişmedi.
+
+Kanıt / doğrulama: npx cucumber-js --dry-run @sim-create-1: 17 steps defined (0 undefined/ambiguous). Live TEST_ENV=test chromium: Given Keycloak FAIL because config/projects/Orange.test.json has no username/password (vault injects these only via RUN_TESTS job). Customer matched features/steps/.../sim-create-1.steps.ts:54 {string} handler; callback+promise did not fire. 0 PASS, 1 FAIL, 16 SKIPPED.
+
+<!-- CHANGELOG:ENTRY {"bump": "patch", "date": "2026-11-02T02:06:52+03:00", "evidence": "Önceki koşu 3be40843 adım 2FF: Playwright selectOption on button role=combobox data-testid=request-header-graph-ref. Düzeltme: getByRole('option', { name: '2FF', exact: true }).click(); Address 1 getByTestId('request-header-address-1'). npx cucumber-js --dry-run @sim-create-2: 17 steps defined. Canlı vault'lu RUN_TESTS bu turda IDE oturumu olmadığı için yeniden koşulmadı.", "id": "2026-11-02-generated-combobox-select", "summary": "sim-create-2, Graph_ref tetikleyicisine selectOption basmaz; açık listeden 2FF option'ına tıklar. Address 1 MCP testid ile doldurulur. Form Next/Single/Batch MCP'de bulunamadığı için UNRESOLVED kalır.", "title": "sim-create-2 Graph_ref 2FF combobox seçimi", "version": "1.6.3"} -->
+## 1.6.3 — sim-create-2 Graph_ref 2FF combobox seçimi
+
+sim-create-2, Graph_ref tetikleyicisine selectOption basmaz; açık listeden 2FF option'ına tıklar. Address 1 MCP testid ile doldurulur. Form Next/Single/Batch MCP'de bulunamadığı için UNRESOLVED kalır.
+
+Kanıt / doğrulama: Önceki koşu 3be40843 adım 2FF: Playwright selectOption on button role=combobox data-testid=request-header-graph-ref. Düzeltme: getByRole('option', { name: '2FF', exact: true }).click(); Address 1 getByTestId('request-header-address-1'). npx cucumber-js --dry-run @sim-create-2: 17 steps defined. Canlı vault'lu RUN_TESTS bu turda IDE oturumu olmadığı için yeniden koşulmadı.

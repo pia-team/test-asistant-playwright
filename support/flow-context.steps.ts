@@ -77,6 +77,20 @@ Given(
 );
 
 Given(
+  'the scenario variable {string} is loaded from Data Center config {string} key {string}',
+  async function (this: ICustomWorld, varName: string, bindingKey: string, configKey: string) {
+    const entries = await testData.getConfig(bindingKey);
+    const value = entries?.[configKey];
+    if (value === undefined || value === null || String(value).trim() === '') {
+      throw new Error(
+        `Data Center config "${bindingKey}" key "${configKey}" is missing or empty.`,
+      );
+    }
+    this.scenarioVars[varName] = String(value);
+  },
+);
+
+Given(
   'I store variable {string} as {string} in flow context',
   async function (this: ICustomWorld, varName: string, key: string) {
     const value = this.scenarioVars[varName];
