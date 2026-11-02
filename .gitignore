@@ -15,6 +15,16 @@ config/
 config/projects/
 !.gitkeep
 
+# Generated CoTester UI tests (kept on disk; not pushed)
+features/*
+!features/DEMO/
+!features/steps/
+features/steps/*
+!features/steps/DEMO/
+pages/*
+!pages/DEMO/
+.backup/
+
 # Generated / local validation scratch
 .cotester-validation-*/
 

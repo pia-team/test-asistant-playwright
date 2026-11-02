@@ -195,6 +195,8 @@ export class CustomWorld extends World implements ICustomWorld {
     }
 
     const rawPage = await this.context.newPage();
+    // Intentionally leave about:blank. Initial URL is ensureInitialPage / first-step
+    // contract (or an explicit Gherkin navigate) — openBrowser does not goto.
     this.healingContext = createHealingContext();
     this.activePageManager = new ActivePageManager(this.context, rawPage, {
       onActivePageChanged: (page) => {

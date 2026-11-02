@@ -160,3 +160,31 @@ Kanıt / doğrulama: npx cucumber-js --dry-run @sim-create-1: 17 steps defined (
 sim-create-2, Graph_ref tetikleyicisine selectOption basmaz; açık listeden 2FF option'ına tıklar. Address 1 MCP testid ile doldurulur. Form Next/Single/Batch MCP'de bulunamadığı için UNRESOLVED kalır.
 
 Kanıt / doğrulama: Önceki koşu 3be40843 adım 2FF: Playwright selectOption on button role=combobox data-testid=request-header-graph-ref. Düzeltme: getByRole('option', { name: '2FF', exact: true }).click(); Address 1 getByTestId('request-header-address-1'). npx cucumber-js --dry-run @sim-create-2: 17 steps defined. Canlı vault'lu RUN_TESTS bu turda IDE oturumu olmadığı için yeniden koşulmadı.
+
+<!-- CHANGELOG:ENTRY {"bump": "minor", "date": "2026-11-02T14:38:42+03:00", "evidence": "tests/initial-page.test.ts 5/5 PASS. tsc --noEmit exit 0. cucumber-js --dry-run features/Orange/sim/sim-create-2.feature: 1 scenario, 12 steps skipped (defined). Canlı RUN_TESTS bu turda koşulmadı.", "id": "2026-11-02-ui-initial-navigation", "summary": "WEB runner, ilk UI adımından önce boş sayfadaysa BASE_LOGIN_URL veya WEB_BASE_URL açar; açık navigate adımını ve zaten yüklü sayfayı ikinci kez gezmez.", "title": "WEB runner first-step initial page", "version": "1.7.0"} -->
+## 1.7.0 — WEB runner first-step initial page
+
+WEB runner, ilk UI adımından önce boş sayfadaysa BASE_LOGIN_URL veya WEB_BASE_URL açar; açık navigate adımını ve zaten yüklü sayfayı ikinci kez gezmez.
+
+Kanıt / doğrulama: tests/initial-page.test.ts 5/5 PASS. tsc --noEmit exit 0. cucumber-js --dry-run features/Orange/sim/sim-create-2.feature: 1 scenario, 12 steps skipped (defined). Canlı RUN_TESTS bu turda koşulmadı.
+
+<!-- CHANGELOG:ENTRY {"bump": "patch", "date": "2026-11-02T15:27:48+03:00", "evidence": "features/steps/Orange/Yeni/filter-resource-2StepDef/filter-resource-2.steps.ts getEnvConfig() from support/env; faker/alphanumeric yok. Canlı RUN_TESTS bu turda koşulmadı.", "id": "2026-11-02-login-fill-env-profile", "summary": "filter-resource-2 username/password adımları runtimeData.faker yerine Test Run credential profilindeki getEnvConfig().username / getEnvConfig().password değerlerini doldurur.", "title": "filter-resource-2 login uses credential profile", "version": "1.7.1"} -->
+## 1.7.1 — filter-resource-2 login uses credential profile
+
+filter-resource-2 username/password adımları runtimeData.faker yerine Test Run credential profilindeki getEnvConfig().username / getEnvConfig().password değerlerini doldurur.
+
+Kanıt / doğrulama: features/steps/Orange/Yeni/filter-resource-2StepDef/filter-resource-2.steps.ts getEnvConfig() from support/env; faker/alphanumeric yok. Canlı RUN_TESTS bu turda koşulmadı.
+
+<!-- CHANGELOG:ENTRY {"bump": "patch", "date": "2026-11-02T15:37:47+03:00", "evidence": "features/steps/Orange/Yeni/create-orderStepDef/create-order.steps.ts import { getEnvConfig } from support/env; process.env.USERNAME yok. Canlı RUN_TESTS bu turda koşulmadı.", "id": "2026-11-02-login-env-local-stub", "summary": "create-order username/password adımları yerel process.env.USERNAME stub'ı yerine Test Run profilindeki getEnvConfig().username / getEnvConfig().password değerlerini doldurur.", "title": "create-order login uses credential profile", "version": "1.7.2"} -->
+## 1.7.2 — create-order login uses credential profile
+
+create-order username/password adımları yerel process.env.USERNAME stub'ı yerine Test Run profilindeki getEnvConfig().username / getEnvConfig().password değerlerini doldurur.
+
+Kanıt / doğrulama: features/steps/Orange/Yeni/create-orderStepDef/create-order.steps.ts import { getEnvConfig } from support/env; process.env.USERNAME yok. Canlı RUN_TESTS bu turda koşulmadı.
+
+<!-- CHANGELOG:ENTRY {"bump": "patch", "date": "2026-11-02T15:46:29+03:00", "evidence": "git check-ignore: features/Orange/Yeni/create-order.feature, features/steps/.../create-order.steps.ts, pages/.../create-order.page.ts, .backup/ eşleşti. git status'ta features/ ve pages/ untracked değil.", "id": "2026-11-02-gitignore-generated-ui-tests", "summary": "WEB runner features/, pages/ ve .backup/ klasörlerindeki üretilen testler GitHub'a gitmez; dosyalar diskte kalır.", "title": "Generated UI tests stay local", "version": "1.7.3"} -->
+## 1.7.3 — Generated UI tests stay local
+
+WEB runner features/, pages/ ve .backup/ klasörlerindeki üretilen testler GitHub'a gitmez; dosyalar diskte kalır.
+
+Kanıt / doğrulama: git check-ignore: features/Orange/Yeni/create-order.feature, features/steps/.../create-order.steps.ts, pages/.../create-order.page.ts, .backup/ eşleşti. git status'ta features/ ve pages/ untracked değil.

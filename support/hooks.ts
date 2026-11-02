@@ -29,6 +29,7 @@ import {
   type StepEventKind,
 } from './step-event';
 import { stepEventFromCucumberStatus } from './step-status';
+import { ensureInitialPageForFirstStep } from './initial-page';
 
 function parsePositiveInt(envKey: string, fallbackMs: number): number {
   const raw = process.env[envKey];
@@ -302,7 +303,15 @@ BeforeStep(async function (this: ICustomWorld, { pickleStep, pickle }) {
   const ctx = scenarioCtxByWorld.get(this);
   if (ctx) {
     const aKey = attemptKey(ctx.pickleId, ctx.attempt);
-    const next = (stepIndexByAttempt.get(aKey) ?? 0) + 1;
+    const currentIndex = stepIndexByAttempt.get(aKey) ?? 0;
+    if (currentIndex === 0) {
+      await ensureInitialPageForFirstStep(
+        this.page,
+        pickleStep.text ?? '',
+        `${this.currentFeatureName || ''}\n${pickle.name ?? ''}`,
+      );
+    }
+    const next = currentIndex + 1;
     stepIndexByAttempt.set(aKey, next);
     emitStepEvent({
       v: 1,
