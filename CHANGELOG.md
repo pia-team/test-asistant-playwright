@@ -188,3 +188,17 @@ Kanıt / doğrulama: features/steps/Orange/Yeni/create-orderStepDef/create-order
 WEB runner features/, pages/ ve .backup/ klasörlerindeki üretilen testler GitHub'a gitmez; dosyalar diskte kalır.
 
 Kanıt / doğrulama: git check-ignore: features/Orange/Yeni/create-order.feature, features/steps/.../create-order.steps.ts, pages/.../create-order.page.ts, .backup/ eşleşti. git status'ta features/ ve pages/ untracked değil.
+
+<!-- CHANGELOG:ENTRY {"bump": "patch", "date": "2026-11-04T14:44:01+03:00", "evidence": "test-asistant-playwright/support/snapshot-resolve-locator.ts, features/steps/YeniProject/Resource/SIMStepDef/SIM.resolve.ts", "id": "2026-11-04-snapshot-runtime-env", "summary": "Deterministik snapshot testinde çalışma anında uuid seçildiyse, job ortamı gelmese bile alan gerçek bir uuid ile doldurulur. Job değeri varsa o kullanılır.", "title": "Runtime uuid alanı boş kalmıyor", "version": "1.7.4"} -->
+## 1.7.4 — Runtime uuid alanı boş kalmıyor
+
+Deterministik snapshot testinde çalışma anında uuid seçildiyse, job ortamı gelmese bile alan gerçek bir uuid ile doldurulur. Job değeri varsa o kullanılır.
+
+Kanıt / doğrulama: test-asistant-playwright/support/snapshot-resolve-locator.ts, features/steps/YeniProject/Resource/SIMStepDef/SIM.resolve.ts
+
+<!-- CHANGELOG:ENTRY {"bump": "patch", "date": "2026-11-05T11:18:45+03:00", "evidence": "node --require ts-node/register/transpile-only --test tests/initial-page.test.ts tests/env-runtime-overlay.test.ts → 7 pass. URL-only config ile resolveInitialPageUrl döndü; getEnvConfig username/password eksik diye hata verdi.", "id": "2026-11-05-relative-goto-unwanted-navigation", "summary": "Sayfa açılışı, kullanıcı adı ve şifre seçilmemiş bir koşuda da ortam URL’sini okur. Eksik kimlik bilgisi yalnız giriş bilgisi istendiğinde hata verir.", "title": "Başlangıç URL’si kimlik bilgisi olmadan okunur", "version": "1.7.5"} -->
+## 1.7.5 — Başlangıç URL’si kimlik bilgisi olmadan okunur
+
+Sayfa açılışı, kullanıcı adı ve şifre seçilmemiş bir koşuda da ortam URL’sini okur. Eksik kimlik bilgisi yalnız giriş bilgisi istendiğinde hata verir.
+
+Kanıt / doğrulama: node --require ts-node/register/transpile-only --test tests/initial-page.test.ts tests/env-runtime-overlay.test.ts → 7 pass. URL-only config ile resolveInitialPageUrl döndü; getEnvConfig username/password eksik diye hata verdi.

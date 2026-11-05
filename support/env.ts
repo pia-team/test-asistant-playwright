@@ -158,7 +158,11 @@ function summarizeLoginUrl(url: string): string {
   }
 }
 
-function parseAndValidateEnvConfig(raw: string, filePath: string): EnvConfig {
+function parseAndValidateEnvConfig(
+  raw: string,
+  filePath: string,
+  requireCredentials = true,
+): EnvConfig {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -184,8 +188,10 @@ function parseAndValidateEnvConfig(raw: string, filePath: string): EnvConfig {
 
   const missing: string[] = [];
   if (!effectiveBaseLoginUrl) missing.push('baseLoginUrl');
-  if (!effectiveUsername) missing.push('username');
-  if (!effectivePassword && !hasRuntimePassword()) missing.push('password');
+  if (requireCredentials) {
+    if (!effectiveUsername) missing.push('username');
+    if (!effectivePassword && !hasRuntimePassword()) missing.push('password');
+  }
 
   if (missing.length > 0) {
     throw new Error(
@@ -328,13 +334,15 @@ function logEnvResolution(resolved: ResolvedEnvConfig): void {
   }
 }
 
-/**
- * Load credentials for the current scenario.
- * Priority: @credential slug -> UI_CREDENTIAL_PROFILE -> tiered -> legacy paths
- * Resolves environment config with full metadata (source file, fallback flags, etc.).
- * Priority: config/projects/{project}.{tier}.json -> config/projects/{project}.json -> config/{tier}.json
- */
-export function resolveEnvConfig(projectKey?: string): ResolvedEnvConfig {
+export interface EnvConfigReadOptions {
+  /** When false, missing username/password do not fail the read. URL is still required. */
+  requireCredentials?: boolean;
+}
+
+function loadResolvedEnvConfig(
+  projectKey: string | undefined,
+  requireCredentials: boolean,
+): ResolvedEnvConfig {
   const tier = normalizeTier(process.env.TEST_ENV);
   const effectiveProjectKey = (projectKey ?? getScenarioProjectKey())?.trim() || undefined;
   const { candidates, attemptedPaths } = buildCandidatePaths(effectiveProjectKey, tier);
@@ -361,7 +369,7 @@ export function resolveEnvConfig(projectKey?: string): ResolvedEnvConfig {
   }
 
   const raw = fs.readFileSync(selected.filePath, 'utf-8');
-  const config = parseAndValidateEnvConfig(raw, selected.filePath);
+  const config = parseAndValidateEnvConfig(raw, selected.filePath, requireCredentials);
 
   const resolved: ResolvedEnvConfig = {
     config,
@@ -374,6 +382,17 @@ export function resolveEnvConfig(projectKey?: string): ResolvedEnvConfig {
     attemptedPaths: attemptedPaths.map(toDisplayPath),
   };
 
+  return resolved;
+}
+
+/**
+ * Load credentials for the current scenario.
+ * Priority: @credential slug -> UI_CREDENTIAL_PROFILE -> tiered -> legacy paths
+ * Resolves environment config with full metadata (source file, fallback flags, etc.).
+ * Priority: config/projects/{project}.{tier}.json -> config/projects/{project}.json -> config/{tier}.json
+ */
+export function resolveEnvConfig(projectKey?: string): ResolvedEnvConfig {
+  const resolved = loadResolvedEnvConfig(projectKey, true);
   logEnvResolution(resolved);
   return resolved;
 }
@@ -381,9 +400,18 @@ export function resolveEnvConfig(projectKey?: string): ResolvedEnvConfig {
 /**
  * Load credentials for the current scenario.
  * @param projectKey Optional override; defaults to scenario project key from hooks.
+ * Missing username/password fail this read. Use {@link getEnvUrls} when only the URL is needed.
  */
-export function getEnvConfig(projectKey?: string): EnvConfig {
+export function getEnvConfig(projectKey?: string, options?: EnvConfigReadOptions): EnvConfig {
+  if (options?.requireCredentials === false) {
+    return loadResolvedEnvConfig(projectKey, false).config;
+  }
   return resolveEnvConfig(projectKey).config;
+}
+
+/** Start URL only. Does not require username or password. */
+export function getEnvUrls(projectKey?: string): { baseLoginUrl: string } {
+  return { baseLoginUrl: getEnvConfig(projectKey, { requireCredentials: false }).baseLoginUrl };
 }
 
 /**

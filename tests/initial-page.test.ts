@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import * as fs from 'fs';
+import * as path from 'path';
 import { after, before, describe, it } from 'node:test';
 import {
   ensureInitialPage,
@@ -10,7 +12,7 @@ import {
   START_TARGET_NOT_CONFIGURED,
   type NavigablePage,
 } from '../support/initial-page';
-import { resetEnvConfigLogCache, setScenarioProjectKey } from '../support/env';
+import { getEnvConfig, resetEnvConfigLogCache, setScenarioProjectKey } from '../support/env';
 
 function mockPage(startUrl: string): NavigablePage & { gotos: string[] } {
   let current = startUrl;
@@ -113,6 +115,32 @@ describe('WEB initial page contract', () => {
       assert.equal(err.message.startsWith(START_TARGET_NOT_CONFIGURED.split(':')[0]), true);
       return true;
     });
+  });
+
+  it('6. start URL is readable when username and password are absent', () => {
+    delete process.env.COTESTER_SNAPSHOT_START_URL;
+    delete process.env.COTESTER_WEB_BASE_URL;
+    delete process.env.BASE_LOGIN_URL;
+    delete process.env.COTESTER_WEB_USERNAME;
+    delete process.env.COTESTER_WEB_PASSWORD;
+    delete process.env.UI_USERNAME;
+    delete process.env.UI_PASSWORD;
+    process.env.TEST_ENV = 'dev';
+    delete process.env.ENV_STRICT_PROJECT_CONFIG;
+    const key = 'UrlOnlyProbe';
+    const file = path.join(__dirname, '..', 'config', 'projects', `${key}.json`);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, JSON.stringify({ baseLoginUrl: 'https://orders.example/orders.html' }));
+    setScenarioProjectKey(key);
+    resetEnvConfigLogCache();
+    try {
+      assert.equal(resolveInitialPageUrl('WEB_BASE_URL'), 'https://orders.example/orders.html');
+      assert.throws(() => getEnvConfig(key), /username, password/);
+    } finally {
+      fs.unlinkSync(file);
+      setScenarioProjectKey('InitialNavProbe');
+      resetEnvConfigLogCache();
+    }
   });
 
   it('5. sim-create-2 navigate wording is explicit; already-open page is left alone', async () => {

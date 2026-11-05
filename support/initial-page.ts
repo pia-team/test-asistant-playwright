@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { getEnvConfig } from './env';
+import { getEnvUrls } from './env';
 
 /**
  * WEB initial-page contract (generation + runner).
@@ -40,7 +40,7 @@ function pickHttpEnv(...keys: string[]): string | undefined {
 
 function tryGetEnvBaseLoginUrl(): string | undefined {
   try {
-    const url = getEnvConfig()?.baseLoginUrl?.trim();
+    const url = getEnvUrls()?.baseLoginUrl?.trim();
     if (url && /^https?:\/\//i.test(url)) {
       return url;
     }
