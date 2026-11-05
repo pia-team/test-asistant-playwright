@@ -107,6 +107,35 @@ export function emitHealEvent(event: HealingEventPayload): void {
   console.log(`COTESTER_HEAL_EVENT:${JSON.stringify(event)}`);
 }
 
+/**
+ * A click that did not change the page was retried once. Visible in the run report,
+ * and it does not spend the self-heal budget.
+ */
+export function recordIneffectiveClick(
+  ctx: HealingContext | undefined,
+  selectorKey: string,
+  route: string,
+): void {
+  const event: HealingEventPayload = {
+    id: randomUUID(),
+    runJobId: ctx?.runJobId || process.env.COTESTER_RUN_JOB_ID || '',
+    featurePath: ctx?.featurePath || process.env.COTESTER_FEATURE_PATH || '',
+    scenarioName: ctx?.currentScenarioName || '',
+    stepText: ctx?.currentStepText || '',
+    route: route || '/',
+    oldSelector: selectorKey,
+    confidence: 'HIGH',
+    outcome: 'INEFFECTIVE_CLICK',
+    retryAttempted: true,
+    timestamp: new Date().toISOString(),
+  };
+  if (ctx) {
+    attachFlowMeta(event, ctx);
+    ctx.events.push(event);
+  }
+  emitHealEvent(event);
+}
+
 export async function attemptSelfHeal(
   ctx: HealingContext,
   page: Page,

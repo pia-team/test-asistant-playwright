@@ -30,6 +30,7 @@ import {
 } from './step-event';
 import { stepEventFromCucumberStatus } from './step-status';
 import { ensureInitialPageForFirstStep } from './initial-page';
+import { applyPostStepWait, configuredStepDelayMs, domFingerprint } from './navigation-click';
 
 function parsePositiveInt(envKey: string, fallbackMs: number): number {
   const raw = process.env[envKey];
@@ -297,6 +298,8 @@ BeforeStep(async function (this: ICustomWorld, { pickleStep, pickle }) {
     this.healingContext.currentStepText = pickleStep.text ?? '';
     this.healingContext.currentScenarioName = pickle.name ?? '';
   }
+  this.stepUrlBefore = this.page && !this.page.isClosed() ? this.page.url() : '';
+  this.stepDomBefore = await domFingerprint(this.page);
   // Format: ➡ STEP START [feature-name]: step text
   console.error(chalk.yellow(`➡ STEP START [${featureName}]: ${pickleStep.text}`));
 
@@ -353,6 +356,14 @@ AfterStep(async function (this: ICustomWorld, { result, pickleStep, pickle }) {
   const ctx = scenarioCtxByWorld.get(this);
   const aKey = ctx ? attemptKey(ctx.pickleId, ctx.attempt) : '';
   const stepIndex = aKey ? stepIndexByAttempt.get(aKey) ?? 0 : 0;
+  const steps = pickle?.steps ?? [];
+  const lastStep = steps.length > 0 ? steps[steps.length - 1] : undefined;
+  const isLastStep = lastStep?.id === pickleStep.id;
+  const afterUrl = this.page && !this.page.isClosed() ? this.page.url() : '';
+  const afterDom = event === 'PASS' ? await domFingerprint(this.page) : '';
+  const changed =
+    afterUrl !== (this.stepUrlBefore || '') || afterDom !== (this.stepDomBefore || '');
+  const stepDelayMs = event === 'PASS' && !isLastStep ? configuredStepDelayMs() : 0;
   if (ctx && stepIndex > 0) {
     emitStepEvent({
       v: 1,
@@ -370,13 +381,17 @@ AfterStep(async function (this: ICustomWorld, { result, pickleStep, pickle }) {
       text: pickleStep.text ?? '',
       reason,
       executionUnitKey: ctx.executionUnitKey,
+      ...(stepDelayMs > 0 ? { stepDelayMs } : {}),
     });
   }
+  await applyPostStepWait({
+    passed: event === 'PASS',
+    isLastStep,
+    changed,
+    page: this.page,
+  });
 
   const mode = getScreenshotMode();
-  const steps = pickle?.steps ?? [];
-  const lastStep = steps.length > 0 ? steps[steps.length - 1] : undefined;
-  const isLastStep = lastStep?.id === pickleStep.id;
 
   if (!shouldTakeStepScreenshot(mode, status, isLastStep)) {
     return;

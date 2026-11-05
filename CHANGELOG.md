@@ -202,3 +202,17 @@ Kanıt / doğrulama: test-asistant-playwright/support/snapshot-resolve-locator.t
 Sayfa açılışı, kullanıcı adı ve şifre seçilmemiş bir koşuda da ortam URL’sini okur. Eksik kimlik bilgisi yalnız giriş bilgisi istendiğinde hata verir.
 
 Kanıt / doğrulama: node --require ts-node/register/transpile-only --test tests/initial-page.test.ts tests/env-runtime-overlay.test.ts → 7 pass. URL-only config ile resolveInitialPageUrl döndü; getEnvConfig username/password eksik diye hata verdi.
+
+<!-- CHANGELOG:ENTRY {"bump": "minor", "date": "2026-11-05T16:08:47+03:00", "evidence": "PLAYWRIGHT_BROWSERS_PATH host cache ile tests/navigation-click.test.ts 6/6 geçti (2026-11-05).", "id": "2026-11-05-web-click-step-pacing", "summary": "İlk sayfa açılışı load ve sınırlı networkidle bekler. Giriş ve sidebar tıklamaları sayfa değişimini doğrular; etkisiz tıklama bir kez yeniden denenir. Adımlar arası bekleme ve sayfa hazır bekleme ortam değişkenlerinden okunur.", "title": "WEB tıklama etkisi ve adım temposu", "version": "1.8.0"} -->
+## 1.8.0 — WEB tıklama etkisi ve adım temposu
+
+İlk sayfa açılışı load ve sınırlı networkidle bekler. Giriş ve sidebar tıklamaları sayfa değişimini doğrular; etkisiz tıklama bir kez yeniden denenir. Adımlar arası bekleme ve sayfa hazır bekleme ortam değişkenlerinden okunur.
+
+Kanıt / doğrulama: PLAYWRIGHT_BROWSERS_PATH host cache ile tests/navigation-click.test.ts 6/6 geçti (2026-11-05).
+
+<!-- CHANGELOG:ENTRY {"bump": "patch", "date": "2026-11-05T16:46:50+03:00", "evidence": "npx tsc --noEmit -p . test-asistant-playwright içinde hatasız tamamlandı (2026-11-05).", "id": "2026-11-05-healing-getbytestid-args", "summary": "Healing proxy getByTestId çağrısı bu Playwright sürümünün tek argümanlı imzasına uyarlandı; WEB runner TypeScript derlemesi tekrar geçer.", "title": "getByTestId healing derlemesi", "version": "1.8.1"} -->
+## 1.8.1 — getByTestId healing derlemesi
+
+Healing proxy getByTestId çağrısı bu Playwright sürümünün tek argümanlı imzasına uyarlandı; WEB runner TypeScript derlemesi tekrar geçer.
+
+Kanıt / doğrulama: npx tsc --noEmit -p . test-asistant-playwright içinde hatasız tamamlandı (2026-11-05).

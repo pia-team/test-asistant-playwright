@@ -21,6 +21,8 @@ export type StepEventPayload = {
   text: string;
   reason?: string;
   executionUnitKey: string;
+  /** Configured pause after this step. Kept separate from the step's own duration. */
+  stepDelayMs?: number;
 };
 
 export type StepScreenshotPayload = {

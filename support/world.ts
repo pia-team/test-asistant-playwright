@@ -57,6 +57,9 @@ type CustomWorldState = {
   flowCapture?: import('./flow-capture').FlowCaptureSession;
   /** Runtime self-heal state for the active scenario. */
   healingContext?: HealingContext;
+  /** URL and DOM fingerprint captured at the start of the current step. */
+  stepUrlBefore?: string;
+  stepDomBefore?: string;
   /**
    * Video handle captured before context close (page refs are cleared on teardown).
    * Used only for optional failure attachment — never throws if missing.
@@ -84,6 +87,8 @@ export class CustomWorld extends World implements ICustomWorld {
   scenarioVars: Record<string, string> = {};
   flowCapture?: import('./flow-capture').FlowCaptureSession;
   healingContext?: HealingContext;
+  stepUrlBefore?: string;
+  stepDomBefore?: string;
   pendingVideo?: { path: () => Promise<string> };
   traceEnabled?: boolean;
 

@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 import { getEnvUrls } from './env';
+import { pageReadyTimeoutMs, waitForPageReady } from './navigation-click';
 
 /**
  * WEB initial-page contract (generation + runner).
@@ -23,6 +24,10 @@ export type NavigablePage = {
     url: string,
     options?: { waitUntil?: 'load' | 'domcontentloaded' | 'networkidle' | 'commit'; timeout?: number },
   ): Promise<unknown>;
+  waitForLoadState?: (
+    state: 'load' | 'domcontentloaded' | 'networkidle',
+    options?: { timeout?: number },
+  ) => Promise<unknown>;
 };
 
 const LOGIN_HINT =
@@ -111,7 +116,8 @@ export async function ensureInitialPage(
     return;
   }
   const url = resolveInitialPageUrl(target);
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await page.goto(url, { waitUntil: 'load', timeout: pageReadyTimeoutMs() });
+  await waitForPageReady(page);
 }
 
 /** First-step runner guard: skip explicit navigate; infer login vs app from step/scenario text. */

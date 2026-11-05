@@ -3,6 +3,7 @@ import type { HealingContext } from './self-heal';
 import { withLocatorHeal } from './self-heal';
 import { resolveSelector } from './locator-registry';
 import { locatorFromSelector } from './self-heal';
+import { clickExpectingChange, navigationClickMode } from './navigation-click';
 
 const LOCATOR_ACTIONS = new Set([
   'click',
@@ -26,8 +27,22 @@ function wrapLocator(ctx: HealingContext, page: Page, locator: Locator, selector
     get(target, prop, receiver) {
       const value = Reflect.get(target, prop, receiver);
       if (typeof prop === 'string' && LOCATOR_ACTIONS.has(prop) && typeof value === 'function') {
+        const navMode = prop === 'click' ? navigationClickMode(selectorKey) : null;
         return (...args: unknown[]) =>
-          withLocatorHeal(ctx, page, selectorKey, (loc) => (loc as any)[prop](...args), () => target);
+          withLocatorHeal(
+            ctx,
+            page,
+            selectorKey,
+            (loc) =>
+              navMode
+                ? clickExpectingChange(page, loc, {
+                    expect: navMode,
+                    label: selectorKey,
+                    healing: ctx,
+                  })
+                : (loc as any)[prop](...args),
+            () => target,
+          );
       }
       return value;
     },
@@ -97,6 +112,14 @@ export function wrapPageForSelfHeal(page: Page, ctx: HealingContext): Page {
           target,
           (text: string | RegExp, options?: unknown) => target.getByPlaceholder(text, options as any),
           (text: string | RegExp) => `placeholder=${String(text)}`,
+        );
+      }
+      if (prop === 'getByTestId') {
+        return wrapLocatorFactory(
+          ctx,
+          target,
+          (testId: string | RegExp) => target.getByTestId(testId),
+          (testId: string | RegExp) => String(testId),
         );
       }
       const value = Reflect.get(target, prop, receiver);
