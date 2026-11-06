@@ -33,11 +33,17 @@ export function waitForPageReadyAfterStepEnabled(): boolean {
   return raw !== 'off' && raw !== 'false' && raw !== '0';
 }
 
-/** Login submit and sidebar nav clicks should prove the page actually moved. */
+const REAL_LINK = /role=link|getByRole\(\s*['"]link['"]|href\s*=/i;
+
+/**
+ * Prove a click moved the page only for real links and login triggers.
+ * Href-less buttons (including sidebar buttons) accept URL or DOM change.
+ */
 export function navigationClickMode(selectorKey: string | undefined | null): ChangeExpect | null {
   const key = selectorKey || '';
-  if (SIDEBAR_CLICK.test(key)) return 'url';
   if (LOGIN_CLICK.test(key)) return 'any';
+  if (REAL_LINK.test(key)) return 'url';
+  if (SIDEBAR_CLICK.test(key)) return 'any';
   return null;
 }
 

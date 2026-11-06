@@ -10,11 +10,13 @@ import {
 } from '../support/navigation-click';
 
 describe('navigation click mode', () => {
-  it('guards login and sidebar clicks only', () => {
+  it('guards login and real links; buttons accept any change', () => {
     assert.equal(navigationClickMode("role=button[name='Sign in with Keycloak']"), 'any');
     assert.equal(navigationClickMode('login-submit-button'), 'any');
     assert.equal(navigationClickMode('kc-login'), 'any');
-    assert.equal(navigationClickMode('sidebar-nav-item-manage-resources'), 'url');
+    assert.equal(navigationClickMode("role=link[name='Orders']"), 'url');
+    assert.equal(navigationClickMode('sidebar-nav-item-manage-resources'), 'any');
+    assert.equal(navigationClickMode("role=button[name='Saas']"), null);
     assert.equal(navigationClickMode("role=checkbox[name='Remember']"), null);
   });
 
@@ -116,6 +118,37 @@ describe('click expecting a page change', () => {
       });
       assert.match(page.url(), /\/home$/);
       assert.equal(await page.locator('h1').textContent(), 'Signed in');
+    } finally {
+      await page.close();
+    }
+  });
+
+  it('accepts a DOM-only change for an in-page button', async () => {
+    const page = await browser.newPage();
+    await page.route('**/products', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: `<!doctype html><body>
+          <aside><div role="button" id="saas">Saas</div></aside>
+          <main id="list">All products</main>
+          <script>
+            document.getElementById('saas').addEventListener('click', () => {
+              document.getElementById('list').textContent = 'Saas products only';
+            });
+          </script>
+        </body>`,
+      });
+    });
+    await page.goto('https://app.example.test/products', { waitUntil: 'load' });
+    try {
+      await clickExpectingChange(page, page.locator('#saas'), {
+        expect: 'any',
+        timeoutMs: 1000,
+        label: 'Saas',
+      });
+      assert.equal(page.url(), 'https://app.example.test/products');
+      assert.equal(await page.locator('#list').textContent(), 'Saas products only');
     } finally {
       await page.close();
     }

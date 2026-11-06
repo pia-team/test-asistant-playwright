@@ -216,3 +216,45 @@ Kanıt / doğrulama: PLAYWRIGHT_BROWSERS_PATH host cache ile tests/navigation-cl
 Healing proxy getByTestId çağrısı bu Playwright sürümünün tek argümanlı imzasına uyarlandı; WEB runner TypeScript derlemesi tekrar geçer.
 
 Kanıt / doğrulama: npx tsc --noEmit -p . test-asistant-playwright içinde hatasız tamamlandı (2026-11-05).
+
+<!-- CHANGELOG:ENTRY {"bump": "patch", "date": "2026-11-06T12:25:38+03:00", "evidence": "tests/navigation-click.test.ts 7/7; npx tsc --noEmit -p . temiz (2026-11-06).", "id": "2026-11-06-button-click-no-nav-required", "summary": "clickExpectingChange gerçek bağlantılarda URL, giriş ve sidebar butonlarında URL veya DOM değişimini kabul eder. Href'siz butonlar için yalnız URL beklenmez.", "title": "Buton tıklamasında sayfa şartı yok", "version": "1.8.2"} -->
+## 1.8.2 — Buton tıklamasında sayfa şartı yok
+
+clickExpectingChange gerçek bağlantılarda URL, giriş ve sidebar butonlarında URL veya DOM değişimini kabul eder. Href'siz butonlar için yalnız URL beklenmez.
+
+Kanıt / doğrulama: tests/navigation-click.test.ts 7/7; npx tsc --noEmit -p . temiz (2026-11-06).
+
+<!-- CHANGELOG:ENTRY {"bump": "minor", "date": "2026-11-06T14:39:00+03:00", "evidence": "climbToClickableAncestor healing-page click yoluna bağlandı; self-heal.ts.", "id": "2026-11-06-clickable-div-text-fallback", "summary": "Metin locator tıklaması, JS-tıklanabilir üst elemana çıkarak kart/satır tıklamasını kurtarır.", "title": "getByText tıklamada tıklanabilir üste çıkış", "version": "1.9.0"} -->
+## 1.9.0 — getByText tıklamada tıklanabilir üste çıkış
+
+Metin locator tıklaması, JS-tıklanabilir üst elemana çıkarak kart/satır tıklamasını kurtarır.
+
+Kanıt / doğrulama: climbToClickableAncestor healing-page click yoluna bağlandı; self-heal.ts.
+
+<!-- CHANGELOG:ENTRY {"bump": "minor", "date": "2026-11-06T15:09:00+03:00", "evidence": "resolveCheckableOnPage healing-page check yoluna bağlandı.", "id": "2026-11-06-check-inner-checkbox", "summary": "check/uncheck başarısız olunca role/label/kapsayıcı içi sırayla işaretlenebilir eleman aranır.", "title": "CHECK locator heal kapsayıcı içi kutu", "version": "1.10.0"} -->
+## 1.10.0 — CHECK locator heal kapsayıcı içi kutu
+
+check/uncheck başarısız olunca role/label/kapsayıcı içi sırayla işaretlenebilir eleman aranır.
+
+Kanıt / doğrulama: resolveCheckableOnPage healing-page check yoluna bağlandı.
+
+<!-- CHANGELOG:ENTRY {"bump": "minor", "date": "2026-11-06T15:41:38+03:00", "evidence": "support/self-heal.ts resolveSelectOpenerOnPage + inferIntentLabel [id=] / from-field.", "id": "2026-11-06-dropdown-opener-id-near-label", "summary": "Açıcı locator bulunamazsa runner id/name/aria-labelledby/yakın etiket sırasıyla yeniden çözer; boşluklu id için [id=\"…\"] kullanılır.", "title": "Runner SELECT açıcı self-heal", "version": "1.11.0"} -->
+## 1.11.0 — Runner SELECT açıcı self-heal
+
+Açıcı locator bulunamazsa runner id/name/aria-labelledby/yakın etiket sırasıyla yeniden çözer; boşluklu id için [id="…"] kullanılır.
+
+Kanıt / doğrulama: support/self-heal.ts resolveSelectOpenerOnPage + inferIntentLabel [id=] / from-field.
+
+<!-- CHANGELOG:ENTRY {"bump": "minor", "date": "2026-11-06T15:57:49+03:00", "evidence": "support/healing-page.ts resolveScopedIconOnPage; support/self-heal.ts scoped icon helper.", "id": "2026-11-06-scoped-target-anchor-icon-identity", "summary": "Adım metnindeki in \"…\" + ikon kimliği locator bulamazsa kart/satır içinde yeniden çözülür; yanlış ürüne heal edilmez.", "title": "Koşuda kapsamlı ikon self-heal", "version": "1.12.0"} -->
+## 1.12.0 — Koşuda kapsamlı ikon self-heal
+
+Adım metnindeki in "…" + ikon kimliği locator bulamazsa kart/satır içinde yeniden çözülür; yanlış ürüne heal edilmez.
+
+Kanıt / doğrulama: support/healing-page.ts resolveScopedIconOnPage; support/self-heal.ts scoped icon helper.
+
+<!-- CHANGELOG:ENTRY {"bump": "patch", "date": "2026-11-06T16:45:56+03:00", "evidence": "BE scope-resolve cart-icon kimliği; healing-page resolveScopedIconOnPage (önceki görevle).", "id": "2026-11-06-scope-anchor-wait-select-opener", "summary": "SVG className (SVGAnimatedString) doğru okunur; cart-icon kimliği koşuda heal edilir.", "title": "Self-heal kapsamlı ikon (cart-icon sınıfı)", "version": "1.12.1"} -->
+## 1.12.1 — Self-heal kapsamlı ikon (cart-icon sınıfı)
+
+SVG className (SVGAnimatedString) doğru okunur; cart-icon kimliği koşuda heal edilir.
+
+Kanıt / doğrulama: BE scope-resolve cart-icon kimliği; healing-page resolveScopedIconOnPage (önceki görevle).

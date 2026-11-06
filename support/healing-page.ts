@@ -1,6 +1,11 @@
 import type { Page, Locator } from '@playwright/test';
 import type { HealingContext } from './self-heal';
-import { withLocatorHeal } from './self-heal';
+import {
+  climbToClickableAncestor,
+  resolveCheckableOnPage,
+  resolveScopedIconOnPage,
+  withLocatorHeal,
+} from './self-heal';
 import { resolveSelector } from './locator-registry';
 import { locatorFromSelector } from './self-heal';
 import { clickExpectingChange, navigationClickMode } from './navigation-click';
@@ -22,6 +27,38 @@ const LOCATOR_ACTIONS = new Set([
   'setInputFiles',
 ]);
 
+async function resolveTextClickTarget(locator: Locator, selectorKey: string): Promise<Locator> {
+  if (!String(selectorKey || '').startsWith('text=')) return locator;
+  const climbed = await climbToClickableAncestor(locator);
+  return climbed || locator;
+}
+
+function inferCheckLabel(selectorKey: string, stepText: string): string {
+  const roleName = selectorKey.match(/role=\w+\[name='([^']+)'\]/);
+  if (roleName) return roleName[1];
+  if (selectorKey.startsWith('text=')) return selectorKey.slice(5);
+  const quoted = stepText.match(/"([^"]+)"/);
+  return quoted ? quoted[1] : '';
+}
+
+/** Parse `the add icon in "Card"` / `"Card" içindeki artı ikonuna` from the current step. */
+function inferScopedIcon(stepText: string): { anchor: string; identity: string } | null {
+  const text = String(stepText || '');
+  const en = text.match(
+    /\b(?:click|clicks|tap|taps)\s+(?:the\s+)?(?:([\w-]+)|"([^"]{1,40})")\s+icon\b[^"]*?\bin\s+"([^"]{1,120})"/i,
+  );
+  if (en) {
+    return { identity: (en[1] || en[2] || '').trim(), anchor: en[3].trim() };
+  }
+  const tr = text.match(
+    /"([^"]{1,120})"\s+(?:içindeki|kartındaki)\s+(?:([\w-]+)|"([^"]{1,40})")\s+ikonuna/i,
+  );
+  if (tr) {
+    return { identity: (tr[2] || tr[3] || '').trim(), anchor: tr[1].trim() };
+  }
+  return null;
+}
+
 function wrapLocator(ctx: HealingContext, page: Page, locator: Locator, selectorKey: string): Locator {
   return new Proxy(locator, {
     get(target, prop, receiver) {
@@ -33,14 +70,31 @@ function wrapLocator(ctx: HealingContext, page: Page, locator: Locator, selector
             ctx,
             page,
             selectorKey,
-            (loc) =>
-              navMode
-                ? clickExpectingChange(page, loc, {
+            async (loc) => {
+              let actionTarget = loc;
+              if (prop === 'click' || prop === 'dblclick' || prop === 'tap') {
+                const scoped = inferScopedIcon(ctx.currentStepText || '');
+                if (scoped) {
+                  const healed = await resolveScopedIconOnPage(page, scoped.anchor, scoped.identity);
+                  actionTarget = healed || (await resolveTextClickTarget(loc, selectorKey));
+                } else {
+                  actionTarget = await resolveTextClickTarget(loc, selectorKey);
+                }
+              } else if (prop === 'check' || prop === 'uncheck') {
+                const label = inferCheckLabel(selectorKey, ctx.currentStepText || '');
+                if (label) {
+                  const healed = await resolveCheckableOnPage(page, label);
+                  if (healed) actionTarget = healed;
+                }
+              }
+              return navMode
+                ? clickExpectingChange(page, actionTarget, {
                     expect: navMode,
                     label: selectorKey,
                     healing: ctx,
                   })
-                : (loc as any)[prop](...args),
+                : (actionTarget as any)[prop](...args);
+            },
             () => target,
           );
       }
