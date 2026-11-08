@@ -4,6 +4,7 @@ import { chromium, type Browser, type Page } from 'playwright';
 import {
   applyPostStepWait,
   clickExpectingChange,
+  clickOpeningNewTab,
   configuredStepDelayMs,
   navigationClickMode,
   pageChanged,
@@ -199,6 +200,108 @@ describe('click expecting a page change', () => {
       });
       await page.locator('#filter').waitFor({ timeout: 400 });
       assert.equal(await page.locator('#filter').textContent(), 'Filter');
+    } finally {
+      await page.close();
+    }
+  });
+
+  it('clickOpeningNewTab returns the opened page and a url expectation clicks once', async () => {
+    const context = await browser.newContext();
+    await context.route('https://app.example.test/**', async (route) => {
+      const url = route.request().url();
+      if (url.includes('/catalog')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'text/html',
+          body: '<!doctype html><h1>Please select a category!</h1>',
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: `<!doctype html><body>
+          <button id="go">Continue</button>
+          <script>
+            window.clicks = 0;
+            document.getElementById('go').addEventListener('click', () => {
+              window.clicks += 1;
+              window.open('https://app.example.test/catalog', '_blank');
+            });
+          </script>
+        </body>`,
+      });
+    });
+    const page = await context.newPage();
+    try {
+      await page.goto('https://app.example.test/customer360/1', { waitUntil: 'load' });
+      const opened = await clickOpeningNewTab(page, page.locator('#go'), { timeoutMs: 5000 });
+      assert.match(opened.url(), /\/catalog$/);
+      assert.equal(await page.evaluate(() => (window as unknown as { clicks: number }).clicks), 1);
+
+      await page.goto('https://app.example.test/customer360/1', { waitUntil: 'load' });
+      await clickExpectingChange(page, page.locator('#go'), {
+        expect: 'url',
+        timeoutMs: 2000,
+        label: 'Continue',
+      });
+      assert.equal(await page.evaluate(() => (window as unknown as { clicks: number }).clicks), 1);
+    } finally {
+      await context.close();
+    }
+  });
+
+  it('same-tab navigation still satisfies clickExpectingChange', async () => {
+    const context = await browser.newContext();
+    await context.route('https://app.example.test/**', async (route) => {
+      const url = route.request().url();
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: url.includes('/orders')
+          ? '<!doctype html><h1>Orders</h1>'
+          : `<!doctype html><button id="go">Orders</button>
+             <script>
+               window.clicks = 0;
+               document.getElementById('go').addEventListener('click', () => {
+                 window.clicks += 1;
+                 location.href = 'https://app.example.test/orders';
+               });
+             </script>`,
+      });
+    });
+    const page = await context.newPage();
+    try {
+      await page.goto('https://app.example.test/home', { waitUntil: 'load' });
+      await clickExpectingChange(page, page.locator('#go'), {
+        expect: 'url',
+        timeoutMs: 3000,
+        label: 'Orders',
+      });
+      assert.match(page.url(), /\/orders$/);
+      assert.equal(context.pages().length, 1);
+    } finally {
+      await context.close();
+    }
+  });
+
+  it('an unchanged page still reports that the page did not change and retries once', async () => {
+    const page = await browser.newPage();
+    await page.setContent(`<!doctype html><button id="go">Continue</button>
+      <script>
+        window.clicks = 0;
+        document.getElementById('go').addEventListener('click', () => { window.clicks += 1; });
+      </script>`, { waitUntil: 'load' });
+    try {
+      await assert.rejects(
+        () => clickExpectingChange(page, page.locator('#go'), {
+          expect: 'url',
+          timeoutMs: 200,
+          label: 'Continue',
+        }),
+        /Continue" tıklandı ama sayfa değişmedi/,
+      );
+      assert.equal(await page.evaluate(() => (window as unknown as { clicks: number }).clicks), 2);
     } finally {
       await page.close();
     }

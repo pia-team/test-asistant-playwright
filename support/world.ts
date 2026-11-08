@@ -198,6 +198,11 @@ export class CustomWorld extends World implements ICustomWorld {
         this.context.setDefaultTimeout(actionTimeout);
       }
     }
+    // setDefaultTimeout also caps page.goto when no navigation timeout is set: a 5 s action timeout made
+    // goto(waitUntil: 'load') flaky on heavy SPAs (backoffice). Navigation keeps its own, longer default.
+    if (navRaw == null || navRaw.trim() === '') {
+      this.context.setDefaultNavigationTimeout(30_000);
+    }
 
     const rawPage = await this.context.newPage();
     // Intentionally leave about:blank. Initial URL is ensureInitialPage / first-step

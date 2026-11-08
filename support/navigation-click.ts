@@ -54,7 +54,11 @@ export async function domFingerprint(page: ReadyPage | undefined): Promise<strin
       const root = document.querySelector('main') || document.body;
       const text = (root && (root as HTMLElement).innerText) || '';
       const count = root ? root.querySelectorAll('*').length : 0;
-      return `${document.title}|${count}|${text.length}`;
+      // Dialogs/overlays render in portals outside <main>; opening or closing one is a DOM change.
+      const overlays = document.querySelectorAll(
+        '[role="dialog"], [role="alertdialog"], [aria-modal="true"], dialog[open], .cdk-overlay-pane, .MuiDialog-root, .MuiPopover-root',
+      ).length;
+      return `${document.title}|${count}|${text.length}|${overlays}`;
     });
   } catch {
     return '';
@@ -130,9 +134,13 @@ async function clickAndAwaitChange(
 ): Promise<boolean> {
   const beforeUrl = page.url();
   const beforeDom = await domFingerprint(page);
+  const beforePages = openPages(page);
   await locator.click();
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
+    // A click that opens a new tab moved the flow even though this tab kept its URL;
+    // never retry it (a second click would submit twice).
+    if (openPages(page) > beforePages) return true;
     const afterUrl = page.url();
     const afterDom = await domFingerprint(page);
     if (pageChanged(beforeUrl, beforeDom, afterUrl, afterDom, expect)) {
@@ -141,6 +149,32 @@ async function clickAndAwaitChange(
     await page.waitForTimeout(50);
   }
   return false;
+}
+
+function openPages(page: Page): number {
+  try {
+    return page.context().pages().filter((p) => !p.isClosed()).length;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Click that opens a NEW TAB (explore evidence: openedNewPage). Waits for the tab and its
+ * DOM; the world's ActivePageManager makes it the active page for the following steps.
+ */
+export async function clickOpeningNewTab(
+  page: Page,
+  locator: Locator,
+  options?: { timeoutMs?: number },
+): Promise<Page> {
+  const timeoutMs = options?.timeoutMs ?? Math.max(20_000, pageReadyTimeoutMs());
+  const newTab = page.context().waitForEvent('page', { timeout: timeoutMs });
+  await locator.click();
+  const tab = await newTab;
+  await tab.waitForLoadState('domcontentloaded', { timeout: timeoutMs });
+  await waitForPageReady(tab, Math.min(timeoutMs, 15_000)).catch(() => undefined);
+  return tab;
 }
 
 async function locatorLabel(locator: Locator): Promise<string> {

@@ -258,3 +258,31 @@ Kanıt / doğrulama: support/healing-page.ts resolveScopedIconOnPage; support/se
 SVG className (SVGAnimatedString) doğru okunur; cart-icon kimliği koşuda heal edilir.
 
 Kanıt / doğrulama: BE scope-resolve cart-icon kimliği; healing-page resolveScopedIconOnPage (önceki görevle).
+
+<!-- CHANGELOG:ENTRY {"bump": "minor", "date": "2026-11-06T17:34:28+03:00", "evidence": "self-heal.test.ts 9 passed", "id": "hitl-visual-pick-once", "summary": "Kilitli görsel seçimde self-heal yalnızca aynı kart ve aynı ikon kimliği içinde yeni locator kabul eder.", "title": "HITL one-shot visual element pick", "version": "1.13.0"} -->
+## 1.13.0 — HITL one-shot visual element pick
+
+Kilitli görsel seçimde self-heal yalnızca aynı kart ve aynı ikon kimliği içinde yeni locator kabul eder.
+
+Kanıt / doğrulama: self-heal.test.ts 9 passed
+
+<!-- CHANGELOG:ENTRY {"bump": "patch", "date": "2026-11-06T22:24:59+03:00", "evidence": "tests/self-heal.test.ts 10 passed, including the card-title filter case.", "id": "hitl-screen-pick-card-scope", "summary": "Kilitli ekran seçimi filter({ has: getByText(...) }) biçimindeki kart başlığını da tanıyor. Onarım aynı başlık ve aynı ikon kimliğiyle kalıyor.", "title": "Visual pick heal keeps the card title filter", "version": "1.13.1"} -->
+## 1.13.1 — Visual pick heal keeps the card title filter
+
+Kilitli ekran seçimi filter({ has: getByText(...) }) biçimindeki kart başlığını da tanıyor. Onarım aynı başlık ve aynı ikon kimliğiyle kalıyor.
+
+Kanıt / doğrulama: tests/self-heal.test.ts 10 passed, including the card-title filter case.
+
+<!-- CHANGELOG:ENTRY {"bump": "minor", "date": "2026-11-07T03:22:52+03:00", "evidence": "healing-page.ts sıra ifadesini okur. Ayrı bir runner koşusu çalıştırılmadı.", "id": "list-item-ordinal", "summary": "Üretilen adım ilk, son veya n. öğeyi söylüyorsa self-heal aynı metnin o sıradaki eşleşmesini kullanır.", "title": "Koşuda liste sırasını koru", "version": "1.14.0"} -->
+## 1.14.0 — Koşuda liste sırasını koru
+
+Üretilen adım ilk, son veya n. öğeyi söylüyorsa self-heal aynı metnin o sıradaki eşleşmesini kullanır.
+
+Kanıt / doğrulama: healing-page.ts sıra ifadesini okur. Ayrı bir runner koşusu çalıştırılmadı.
+
+<!-- CHANGELOG:ENTRY {"bump": "patch", "date": "2026-11-08T19:03:44+03:00", "evidence": "tsc temiz. npm test 90/90 geçti; waitStepTimeoutMs(600000)=660000, NaN=180000, tavan WAIT_MAX_MS+60s. COTESTER_STEP_TIMEOUT_MS=2000 iken timeout:5000 olan 3 sn bekleme geçti, timeout'suz adım 2000 ms'de düştü.", "id": "wait-step-cucumber-timeout", "summary": "Uzun bekleme adımları, adımın kendi Cucumber süresini bekleme artı 60 saniye olarak hesaplar. Varsayılan 2 dakika sınırı diğer adımlar için durur.", "title": "Bekleme adımı Cucumber zaman aşımı", "version": "1.14.1"} -->
+## 1.14.1 — Bekleme adımı Cucumber zaman aşımı
+
+Uzun bekleme adımları, adımın kendi Cucumber süresini bekleme artı 60 saniye olarak hesaplar. Varsayılan 2 dakika sınırı diğer adımlar için durur.
+
+Kanıt / doğrulama: tsc temiz. npm test 90/90 geçti; waitStepTimeoutMs(600000)=660000, NaN=180000, tavan WAIT_MAX_MS+60s. COTESTER_STEP_TIMEOUT_MS=2000 iken timeout:5000 olan 3 sn bekleme geçti, timeout'suz adım 2000 ms'de düştü.

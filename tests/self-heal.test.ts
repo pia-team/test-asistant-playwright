@@ -6,6 +6,8 @@ import {
   isLocatorFailure,
   extractSelectorFromError,
   attemptSelfHeal,
+  parseVisualPickLock,
+  visualPickHealAllowed,
   type HealingEventPayload,
   type HealingContext,
 } from '../support/self-heal';
@@ -134,5 +136,43 @@ describe('self-heal', { concurrency: 1 }, () => {
     const parsed = JSON.parse(eventLine!.replace('COTESTER_HEAL_EVENT:', ''));
     assert.equal(parsed.flowId, 'flow-xyz');
     assert.equal(parsed.flowStepIndex, 1);
+  });
+
+  it('self-heal: locked visual pick rejects a different scope or identity', () => {
+    const source = [
+      "When('I click the cart icon in {string}', async function (this: ICustomWorld, title: string) {",
+      '  // @visual-pick scope="Vodafone Hints Unlimited Users Power" identity="cart"',
+      "  await page.getByTestId('card-vodafone').locator('svg.cart-icon').click();",
+      '});',
+    ].join('\n');
+    const lock = parseVisualPickLock(source, 'I click the cart icon in "Vodafone Hints Unlimited Users Power"');
+    assert.equal(lock?.identity, 'cart');
+    assert.equal(
+      visualPickHealAllowed(lock, "getByTestId('card-vodafone').locator('svg.cart-icon')"),
+      true,
+    );
+    assert.equal(
+      visualPickHealAllowed(lock, "getByTestId('card-other').locator('svg.edit-icon')"),
+      false,
+    );
+  });
+
+  it('self-heal: locked visual pick keeps the card title filter and the icon', () => {
+    const source = [
+      "When('I click the add icon in {string}', async function (this: ICustomWorld, title: string) {",
+      '  // @visual-pick scope="Plan 7" identity="AddIcon"',
+      "  await page.locator('div.MuiCard-root').filter({ has: page.getByText('Plan 7', { exact: true }) }).locator('svg[data-testid=\"AddIcon\"]').click();",
+      '});',
+    ].join('\n');
+    const lock = parseVisualPickLock(source, 'I click the add icon in "Plan 7"');
+    assert.equal(lock?.anchor, 'Plan 7');
+    assert.equal(
+      visualPickHealAllowed(lock, "locator('div.MuiCard-root').filter({ has: getByText('Plan 7', { exact: true }) }).locator('svg[data-testid=\"AddIcon\"]')"),
+      true,
+    );
+    assert.equal(
+      visualPickHealAllowed(lock, "locator('svg[data-testid=\"AddIcon\"]')"),
+      false,
+    );
   });
 });

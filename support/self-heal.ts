@@ -1,4 +1,6 @@
 import { randomUUID } from 'crypto';
+import { readFileSync, readdirSync } from 'fs';
+import { dirname, join } from 'path';
 import type { Page, Locator } from '@playwright/test';
 import { scrapePageDom, isLoginRoute } from './dom-scrape';
 import { registerOverride } from './locator-registry';
@@ -136,6 +138,54 @@ export function recordIneffectiveClick(
   emitHealEvent(event);
 }
 
+export function parseVisualPickLock(
+  source: string,
+  stepText: string,
+): { scopeTitle: string; identity: string; scopeToken: string; anchor?: string } | null {
+  if (!source || !stepText) return null;
+  const needle = stepText.trim().slice(0, 80);
+  const at = needle ? source.indexOf(needle) : -1;
+  const window = at >= 0 ? source.slice(Math.max(0, at - 200), at + 1400) : source;
+  const mark = window.match(/\/\/ @visual-pick scope="([^"]*)" identity="([^"]*)"/);
+  if (!mark) return null;
+  const after = window.slice(window.indexOf(mark[0]));
+  const token = after.match(/getByTestId\(\s*['"]([^'"]+)['"]\s*\)/)?.[1] || '';
+  const anchor = after.match(/filter\(\{\s*has:\s*(?:page\.)?getByText\(\s*['"]([^'"]+)['"]/)?.[1] || '';
+  return { scopeTitle: mark[1], identity: mark[2], scopeToken: token, anchor };
+}
+
+/** A locked visual pick may only heal inside the same card and icon identity. */
+export function visualPickHealAllowed(
+  lock: { scopeTitle?: string; identity?: string; scopeToken?: string; anchor?: string } | null,
+  nextSelector: string,
+): boolean {
+  if (!lock) return true;
+  const next = String(nextSelector || '');
+  const scope = String(lock.scopeTitle || '').trim();
+  const token = String(lock.scopeToken || '').trim();
+  const identity = String(lock.identity || '').trim();
+  const anchor = String(lock.anchor || '').trim();
+  if (!scope && !token && !identity && !anchor) return true;
+  const sameScope = (scope && next.includes(scope)) || (token && next.includes(token)) || (anchor && next.includes(anchor));
+  if ((scope || token || anchor) && !sameScope) return false;
+  if (anchor && !next.includes(anchor)) return false;
+  if (identity && !next.toLowerCase().includes(identity.toLowerCase())) return false;
+  return true;
+}
+
+function visualPickLockFor(ctx: HealingContext): { scopeTitle: string; identity: string; scopeToken: string } | null {
+  const feature = ctx.featurePath;
+  if (!feature) return null;
+  try {
+    const dir = dirname(feature);
+    const files = readdirSync(dir).filter((name) => name.endsWith('.steps.ts'));
+    const source = files.map((name) => readFileSync(join(dir, name), 'utf8')).join('\n');
+    return parseVisualPickLock(source, ctx.currentStepText);
+  } catch {
+    return null;
+  }
+}
+
 export async function attemptSelfHeal(
   ctx: HealingContext,
   page: Page,
@@ -162,13 +212,14 @@ export async function attemptSelfHeal(
   if (!failedSelector) {
     return { retry: false };
   }
+  const visualLock = visualPickLockFor(ctx);
 
   // Local opener heal: attr / aria-labelledby / nearby label before calling the API.
   const intent = inferIntentLabel(failedSelector, ctx.currentStepText);
   const localOpener = await resolveSelectOpenerOnPage(page, intent);
   if (localOpener) {
     const newSelector = await selectorFromLocator(localOpener).catch(() => null);
-    if (newSelector && newSelector !== failedSelector) {
+    if (newSelector && newSelector !== failedSelector && visualPickHealAllowed(visualLock, newSelector)) {
       registerOverride(page.url(), ctx.currentStepKey, failedSelector, newSelector);
       ctx.retriedSteps.add(ctx.currentStepKey);
       ctx.featureAttempts += 1;
@@ -256,7 +307,8 @@ export async function attemptSelfHeal(
     timestamp: new Date().toISOString(),
   };
 
-  if (match.confidence !== 'HIGH' || !match.selected?.selector) {
+  if (match.confidence !== 'HIGH' || !match.selected?.selector
+      || !visualPickHealAllowed(visualLock, match.selected.selector)) {
     eventBase.outcome = match.confidence === 'AMBIGUOUS' ? 'AMBIGUOUS' : 'STILL_FAILED';
     eventBase.retryAttempted = false;
     attachFlowMeta(eventBase, ctx);

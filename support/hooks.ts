@@ -31,6 +31,7 @@ import {
 import { stepEventFromCucumberStatus } from './step-status';
 import { ensureInitialPageForFirstStep } from './initial-page';
 import { applyPostStepWait, configuredStepDelayMs, domFingerprint } from './navigation-click';
+import { markScenarioStart } from './waitSteps';
 
 function parsePositiveInt(envKey: string, fallbackMs: number): number {
   const raw = process.env[envKey];
@@ -185,6 +186,7 @@ Before(async function (this: CustomWorld, scenario) {
   await ensureScreenshotsDir();
 
   this.scenarioVars = {};
+  markScenarioStart(this);
   clearLocatorOverrides();
   resetTestDataCache();
 
