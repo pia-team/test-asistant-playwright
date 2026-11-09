@@ -9,6 +9,8 @@ import { createHealingContext, type HealingContext } from './self-heal';
 import { wrapPageForSelfHeal } from './healing-page';
 import { ActivePageManager } from './active-page';
 import { emitStepTrace, isPlaywrightTraceEnabled } from './step-event';
+import { flushPendingDownloads } from './downloadCapture';
+export { flushPendingDownloads } from './downloadCapture';
 
 // Supported browsers: chromium, firefox, webkit (Safari)
 type BrowserType = 'chromium' | 'firefox' | 'webkit';
@@ -65,6 +67,8 @@ type CustomWorldState = {
    * Used only for optional failure attachment — never throws if missing.
    */
   pendingVideo?: { path: () => Promise<string> };
+  /** Downloads started during the current step; saved to Data Center after the step. */
+  pendingDownloads?: Array<{ download: import('playwright').Download; stepText?: string }>;
   /** Paket 8 / Faz 3 — opt-in Playwright tracing (default off). */
   traceEnabled?: boolean;
   openBrowser: () => Promise<void>;
@@ -90,6 +94,8 @@ export class CustomWorld extends World implements ICustomWorld {
   stepUrlBefore?: string;
   stepDomBefore?: string;
   pendingVideo?: { path: () => Promise<string> };
+  /** Downloads started during the current step; saved to Data Center after the step. */
+  pendingDownloads?: Array<{ download: import('playwright').Download; stepText?: string }>;
   traceEnabled?: boolean;
 
   constructor(options: IWorldOptions) {
@@ -169,6 +175,13 @@ export class CustomWorld extends World implements ICustomWorld {
       };
     }
     this.context = await this.browser.newContext(contextOptions);
+    // Every file a step downloads is kept for Data Center (see flushPendingDownloads).
+    this.pendingDownloads = [];
+    this.context.on('page', (p) => {
+      p.on('download', (download) => {
+        this.pendingDownloads?.push({ download, stepText: this.healingContext?.currentStepText });
+      });
+    });
 
     this.traceEnabled = isPlaywrightTraceEnabled();
     if (this.traceEnabled && this.context) {
@@ -267,6 +280,9 @@ export class CustomWorld extends World implements ICustomWorld {
       }
       this.traceEnabled = false;
     }
+
+    // A download must be saved while its context is still open.
+    await flushPendingDownloads(this);
 
     // Close context (all tabs) after disposing listeners — do not leave closed page as active.
     try {

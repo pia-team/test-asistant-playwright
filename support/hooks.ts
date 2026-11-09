@@ -2,7 +2,7 @@ import { Before, After, Status, AfterStep, BeforeStep } from '@cucumber/cucumber
 // Heal stale PLAYWRIGHT_BROWSERS_PATH before any browser launch (world.openBrowser).
 import './playwright-browsers-path';
 import type { ICustomWorld } from './world';
-import { CustomWorld } from './world';
+import { CustomWorld, flushPendingDownloads } from './world';
 import {
   extractProjectKeyFromFeatureUri,
   setScenarioProjectKey,
@@ -386,6 +386,8 @@ AfterStep(async function (this: ICustomWorld, { result, pickleStep, pickle }) {
       ...(stepDelayMs > 0 ? { stepDelayMs } : {}),
     });
   }
+  // The step's own code had its chance to call testData.saveDownload; save what it left.
+  await flushPendingDownloads(this);
   await applyPostStepWait({
     passed: event === 'PASS',
     isLastStep,

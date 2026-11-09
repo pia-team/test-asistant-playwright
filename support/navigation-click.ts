@@ -65,6 +65,20 @@ export async function domFingerprint(page: ReadyPage | undefined): Promise<strin
   }
 }
 
+function overlayCount(fingerprint: string): number {
+  // title|elementCount|textLength|overlayCount — older 3-field prints carry no overlay count.
+  const parts = fingerprint.split('|');
+  if (parts.length < 4) return 0;
+  const n = Number.parseInt(parts[parts.length - 1] ?? '', 10);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** True when the click opened a dialog/overlay (the fingerprint's last field grew). */
+export function overlayOpened(beforeDom: string, afterDom: string): boolean {
+  if (!beforeDom || !afterDom) return false;
+  return overlayCount(afterDom) > overlayCount(beforeDom);
+}
+
 export function pageChanged(
   beforeUrl: string,
   beforeDom: string,
@@ -74,7 +88,9 @@ export function pageChanged(
 ): boolean {
   const urlChanged = beforeUrl !== afterUrl;
   const domChanged = beforeDom !== afterDom;
-  if (expect === 'url') return urlChanged;
+  // A click expected to navigate may instead open a dialog on the same URL ("Add To Cart" ->
+  // "Shopping Cart update is ..."). An overlay that appears is a real effect, not a dead click.
+  if (expect === 'url') return urlChanged || overlayOpened(beforeDom, afterDom);
   if (expect === 'dom') return domChanged;
   return urlChanged || domChanged;
 }

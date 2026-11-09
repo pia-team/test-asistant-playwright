@@ -94,6 +94,55 @@ type RunDataManifest = {
 
 let cachedManifest: RunDataManifest | null | undefined;
 
+/** Downloads a step already saved with testData.saveDownload (the auto-save skips them). */
+const explicitlySaved = new WeakSet<Download>();
+const usedAutoKeys = new Set<string>();
+
+/**
+ * Data Center key for a download a step did not save itself. Built from the step's quoted
+ * texts, scope first: 'I click "Download" in "Input File"' -> "input-file-download".
+ */
+export function downloadBindingKey(stepText: string | undefined, suggestedFilename: string): string {
+  const quoted = Array.from(String(stepText || '').matchAll(/"([^"]+)"/g)).map((m) => m[1]);
+  let base = '';
+  try {
+    base = quoted.length > 0 ? toSlug([...quoted].reverse().join(' ')) : '';
+  } catch {
+    base = '';
+  }
+  if (!base) {
+    try {
+      base = toSlug(suggestedFilename.replace(/\.[^.]+$/, ''));
+    } catch {
+      base = 'download';
+    }
+  }
+  let key = base;
+  for (let n = 2; usedAutoKeys.has(key); n++) key = `${base}-${n}`;
+  usedAutoKeys.add(key);
+  return key;
+}
+
+/**
+ * Saves a download the step code did not save (every "Download" click lands in Data Center,
+ * whatever code was generated). Outside a CoTester run there is no manifest: it is skipped.
+ */
+export async function autoSaveDownload(
+  download: Download,
+  stepText: string | undefined,
+): Promise<{ resourceRef: string; bindingKey: string } | null> {
+  if (explicitlySaved.has(download) || !process.env.COTESTER_RUN_DATA_MANIFEST_PATH) {
+    return null;
+  }
+  const bindingKey = downloadBindingKey(stepText, download.suggestedFilename() || 'download.bin');
+  const { resourceRef } = await testData.saveDownload(bindingKey, download);
+  return { resourceRef, bindingKey };
+}
+
+export function resetAutoDownloadKeys(): void {
+  usedAutoKeys.clear();
+}
+
 function toSlug(input: string): string {
   const normalized = input
     .trim()
@@ -346,6 +395,7 @@ export const testData = {
     const workDir = path.dirname(manifestPath);
     const generatedDir = path.join(workDir, 'generated');
     await fs.mkdir(generatedDir, { recursive: true });
+    explicitlySaved.add(download);
     const suggested = download.suggestedFilename() || `${slug}.bin`;
     const target = path.join(generatedDir, `${slug}-${suggested}`);
     await download.saveAs(target);

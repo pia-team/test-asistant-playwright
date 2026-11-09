@@ -25,6 +25,10 @@ describe('navigation click mode', () => {
     assert.equal(pageChanged('https://a', 't|1|1', 'https://a', 't|2|9', 'url'), false);
     assert.equal(pageChanged('https://a', 't|1|1', 'https://b', 't|1|1', 'url'), true);
     assert.equal(pageChanged('https://a', 't|1|1', 'https://a', 't|2|9', 'any'), true);
+    // url expected, same URL, but a dialog opened (overlay count 0 -> 1): a real effect.
+    assert.equal(pageChanged('https://a/cart', 't|10|50|0', 'https://a/cart', 't|14|80|1', 'url'), true);
+    // url expected, same URL, content changed but no dialog: still not a navigation.
+    assert.equal(pageChanged('https://a/cart', 't|10|50|0', 'https://a/cart', 't|14|80|0', 'url'), false);
   });
 });
 
