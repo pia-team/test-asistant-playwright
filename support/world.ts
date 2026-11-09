@@ -220,7 +220,11 @@ export class CustomWorld extends World implements ICustomWorld {
     const featureName = this.currentFeatureName || 'unknown';
 
     try {
-      await this.activePageManager?.settle();
+      // A page that never settles (long poll, open dialog) must not hold up teardown.
+      await Promise.race([
+        this.activePageManager?.settle(),
+        new Promise((resolve) => setTimeout(resolve, 15_000)),
+      ]);
     } catch {
       // ignore settle errors during teardown
     }

@@ -420,7 +420,12 @@ AfterStep(async function (this: ICustomWorld, { result, pickleStep, pickle }) {
   }
 });
 
-After(async function (this: ICustomWorld, scenario) {
+// Teardown (trace zip, video finalisation, browser close) grows with the scenario length: a
+// 10-minute run with waits can need more than the 120 s step default, which used to fail a
+// scenario whose steps had all passed.
+const AFTER_HOOK_TIMEOUT_MS = parsePositiveInt('COTESTER_AFTER_HOOK_TIMEOUT_MS', 10 * 60 * 1000);
+
+After({ timeout: AFTER_HOOK_TIMEOUT_MS }, async function (this: ICustomWorld, scenario) {
   const status = scenario.result?.status;
   const screenshotMode = getScreenshotMode();
   const featureName = this.currentFeatureName || 'unknown';
